@@ -32,12 +32,5 @@
 			"database_name": "xingyu-xingyuan-db",
 			"database_id": "local-dev-placeholder"
 		}
-	],
-	// KV namespace for OTP codes
-	"kv_namespaces": [
-		{
-			"binding": "OTP_KV",
-			"id": "local-dev-placeholder"
-		}
 	]
 }

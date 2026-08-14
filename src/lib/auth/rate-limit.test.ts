@@ -1,47 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { checkRateLimit, incrementRate, type SimpleKV } from "./rate-limit";
+import type { D1Database } from "@cloudflare/workers-types";
+import { claimRate } from "./rate-limit";
 import { RATE_EMAIL_PER_HOUR, RATE_IP_PER_HOUR } from "./types";
-
-class MemoryKV implements SimpleKV {
-  private map = new Map<string, { value: string; exp: number }>();
-  async get(key: string): Promise<string | null> {
-    const e = this.map.get(key);
-    if (!e) return null;
-    if (Date.now() > e.exp) { this.map.delete(key); return null; }
-    return e.value;
-  }
-  async put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void> {
-    this.map.set(key, { value, exp: opts?.expirationTtl ? Date.now() + opts.expirationTtl * 1000 : Infinity });
-  }
-}
-
-async function prime(kv: MemoryKV, times: number, key: string) {
-  for (let i = 0; i < times; i++) {
-    const n = Number((await kv.get(key)) ?? "0") + 1;
-    await kv.put(key, String(n), { expirationTtl: 3600 });
-  }
-}
+import { MemoryD1 } from "./d1-mock";
 
 describe("rate-limit", () => {
   it("allows requests under the limit", async () => {
-    const kv = new MemoryKV();
-    expect(await checkRateLimit(kv, "a@b.com", "1.2.3.4")).toEqual({ allowed: true });
-    await incrementRate(kv, "a@b.com", "1.2.3.4");
-    expect(await checkRateLimit(kv, "a@b.com", "1.2.3.4")).toEqual({ allowed: true });
+    const db = new MemoryD1();
+    const d = db as unknown as D1Database;
+    expect(await claimRate(d, "a@b.com", "1.2.3.4")).toEqual({ allowed: true });
+    expect(await claimRate(d, "a@b.com", "1.2.3.4")).toEqual({ allowed: true });
   });
 
   it("blocks when the email limit is hit", async () => {
-    const kv = new MemoryKV();
-    await prime(kv, RATE_EMAIL_PER_HOUR, `otp:rate:a@b.com`);
-    const r = await checkRateLimit(kv, "a@b.com", "9.9.9.9");
+    const db = new MemoryD1();
+    const d = db as unknown as D1Database;
+    for (let i = 0; i < RATE_EMAIL_PER_HOUR; i++) {
+      expect((await claimRate(d, "a@b.com", "1.2.3.4")).allowed).toBe(true);
+    }
+    const r = await claimRate(d, "a@b.com", "1.2.3.4");
     expect(r.allowed).toBe(false);
     expect(r.retryAfterSec).toBeDefined();
   });
 
   it("blocks when the IP limit is hit even if email is fresh", async () => {
-    const kv = new MemoryKV();
-    await prime(kv, RATE_IP_PER_HOUR, "otp:rate:1.2.3.4");
-    const r = await checkRateLimit(kv, "a@b.com", "1.2.3.4");
+    const db = new MemoryD1();
+    db.seed("rate_limits", "otp:rate:1.2.3.4", { count: RATE_IP_PER_HOUR, window_end: Date.now() + 60_000 });
+    const r = await claimRate(db as unknown as D1Database, "a@b.com", "1.2.3.4");
     expect(r.allowed).toBe(false);
+  });
+
+  it("resets the counter once the window expires", async () => {
+    const db = new MemoryD1();
+    db.seed("rate_limits", "otp:rate:a@b.com", { count: RATE_EMAIL_PER_HOUR, window_end: Date.now() - 1000 });
+    const r = await claimRate(db as unknown as D1Database, "a@b.com", "9.9.9.9");
+    expect(r.allowed).toBe(true);
   });
 });

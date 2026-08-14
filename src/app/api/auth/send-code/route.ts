@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { generateOtp, hashCode, isValidEmail } from "@/lib/auth/otp";
-import { checkRateLimit, incrementRate } from "@/lib/auth/rate-limit";
+import { claimRate } from "@/lib/auth/rate-limit";
 import { verifyTurnstileToken } from "@/lib/auth/turnstile";
 import { sendOtpEmail } from "@/lib/auth/email";
+import { storeOtp, deleteOtp } from "@/lib/auth/otp-store";
 import { OTP_TTL_MS } from "@/lib/auth/types";
 
 export async function POST(request: NextRequest) {
-  let body: { email?: string; turnstileToken?: string };
+  let body: { email?: string; turnstileToken?: string } | null;
   try {
-    body = (await request.json()) as { email?: string; turnstileToken?: string };
+    body = (await request.json()) as { email?: string; turnstileToken?: string } | null;
   } catch {
+    return NextResponse.json({ error: "INVALID_BODY" }, { status: 400 });
+  }
+  if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "INVALID_BODY" }, { status: 400 });
   }
 
@@ -25,25 +29,25 @@ export async function POST(request: NextRequest) {
   const human = await verifyTurnstileToken(turnstileToken, env.TURNSTILE_SECRET_KEY, ip);
   if (!human) return NextResponse.json({ error: "TURNSTILE_FAILED" }, { status: 403 });
 
-  const rl = await checkRateLimit(env.OTP_KV, email, ip);
+  const rl = await claimRate(env.DB, email, ip);
   if (!rl.allowed) return NextResponse.json({ error: "RATE_LIMITED" }, { status: 429 });
 
   const code = generateOtp();
   const hash = await hashCode(code);
-  await env.OTP_KV.put(
-    `otp:${email}`,
-    JSON.stringify({ hash, attempts: 0, expiresAt: Date.now() + OTP_TTL_MS }),
-    { expirationTtl: Math.ceil(OTP_TTL_MS / 1000) },
-  );
-  await incrementRate(env.OTP_KV, email, ip);
+  await storeOtp(env.DB, email, hash, Date.now() + OTP_TTL_MS);
 
-  await sendOtpEmail({
-    email,
-    code,
-    from: env.AUTH_FROM_EMAIL,
-    apiKey: env.RESEND_API_KEY,
-    devLog: env.AUTH_DEV_LOG_CODE === "true",
-  });
+  try {
+    await sendOtpEmail({
+      email,
+      code,
+      from: env.AUTH_FROM_EMAIL,
+      apiKey: env.RESEND_API_KEY,
+      devLog: env.AUTH_DEV_LOG_CODE === "true",
+    });
+  } catch {
+    await deleteOtp(env.DB, email);
+    return NextResponse.json({ error: "SEND_FAILED" }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }
