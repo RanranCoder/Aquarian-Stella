@@ -41,15 +41,17 @@ export function SiteNav() {
       {/* 桌面端 · 浮岛玻璃导航 */}
       <header className="fixed inset-x-0 top-0 z-40 hidden justify-center px-6 pt-5 md:flex">
         <nav className="glass-strong flex items-center gap-1 rounded-full py-1.5 pl-2.5 pr-1.5">
-          <Link href="/" className="mr-2 flex items-center px-2 py-1.5" aria-label="星语星愿 首页">
-            <Image
-              src="/brand/logo-main.png"
-              alt="星语星愿"
-              width={1020}
-              height={305}
-              className="h-8 w-auto"
-              priority
-            />
+          <Link href="/" className="mr-2 flex items-center" aria-label="星语星愿 首页">
+            <span className="flex items-center rounded-full bg-white p-1.5 shadow-[0_1px_6px_rgba(0,0,0,0.25)]">
+              <Image
+                src="/brand/logo-main.png"
+                alt="星语星愿"
+                width={1020}
+                height={305}
+                className="h-6 w-auto max-w-none"
+                priority
+              />
+            </span>
           </Link>
           {DESKTOP_LINKS.map((link) => {
             const active = isActive(pathname, link.href);
