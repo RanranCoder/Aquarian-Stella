@@ -36,13 +36,15 @@ export function GlassCard({
     >
       <div
         className={cn(
-          "relative h-full overflow-hidden rounded-[calc(var(--radius-panel)-1px)]",
+          "relative h-full rounded-[calc(var(--radius-panel)-1px)]",
           "bg-gradient-to-b from-night-800/85 to-night-900/95 backdrop-blur-xl",
           GLOW_SHADOW[glow],
         )}
       >
-        {/* 顶角柔光 */}
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[130%] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse_at_top,rgba(178,165,221,0.14),transparent_60%)]" />
+        {/* 顶角柔光：独立裁剪容器，不限制内容溢出（弹出面板可置顶显示） */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[calc(var(--radius-panel)-1px)]">
+          <div className="absolute -top-24 left-1/2 h-48 w-[130%] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse_at_top,rgba(178,165,221,0.14),transparent_60%)]" />
+        </div>
         <div className="relative h-full">{children}</div>
       </div>
     </div>

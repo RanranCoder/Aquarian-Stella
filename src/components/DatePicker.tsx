@@ -165,7 +165,7 @@ export function DatePicker({
           id={popupId}
           role="dialog"
           aria-label={ariaLabel}
-          className="absolute left-0 top-full z-30 mt-2 w-[280px] rounded-xl border border-hairline bg-night-800/95 p-3 shadow-card-lg backdrop-blur-xl"
+          className="absolute left-0 top-full z-50 mt-2 w-[280px] rounded-xl border border-hairline bg-night-800/95 p-3 shadow-card-lg backdrop-blur-xl"
         >
           {mode === "month" ? (
             <>
