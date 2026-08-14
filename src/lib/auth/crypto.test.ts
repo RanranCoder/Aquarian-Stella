@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { encode, toBase64Url, fromBase64Url, toHex, hmacSha256, sha256Hex, timingSafeEqual } from "./crypto";
+import { encode, toBase64Url, fromBase64Url, hmacSha256, sha256Hex, timingSafeEqual } from "./crypto";
 
 describe("crypto", () => {
   it("base64url roundtrip", () => {

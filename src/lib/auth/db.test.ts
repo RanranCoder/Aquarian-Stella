@@ -9,21 +9,22 @@ class FakeD1 {
   calls: Array<{ sql: string; params: unknown[] }> = [];
   results: Row[] = [];
   prepare(sql: string) {
-    const self = this;
-    self.calls.push({ sql, params: [] });
-    return {
-      bind(...params: unknown[]) {
-        self.calls[self.calls.length - 1].params = params;
-        return this;
+    this.calls.push({ sql, params: [] });
+    const call = this.calls[this.calls.length - 1];
+    const stmt = {
+      bind: (...params: unknown[]) => {
+        call.params = params;
+        return stmt;
       },
       async run() {
         return { success: true };
       },
-      async first<T>() {
-        const r = self.results.shift();
+      first: async <T>() => {
+        const r = this.results.shift();
         return (r ?? null) as T | null;
       },
     };
+    return stmt;
   }
 }
 
