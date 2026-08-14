@@ -31,6 +31,7 @@ export function AccountCard() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -90,6 +91,7 @@ export function AccountCard() {
       }
       setCooldown(60);
       setTurnstileToken("");
+      setTurnstileKey((k) => k + 1);
     } catch {
       setError("发送失败，请稍后重试");
     } finally {
@@ -177,7 +179,7 @@ export function AccountCard() {
               </button>
             </div>
 
-            <Turnstile onToken={setTurnstileToken} className="min-h-[65px]" />
+            <Turnstile key={turnstileKey} onToken={setTurnstileToken} className="min-h-[65px]" />
 
             <div className="flex flex-col gap-3 md:flex-row">
               <input

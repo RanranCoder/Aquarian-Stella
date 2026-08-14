@@ -31,10 +31,11 @@ export function Turnstile({
   }, [onToken]);
 
   useEffect(() => {
+    let cancelled = false;
     let widgetId: string | undefined;
 
     const render = () => {
-      if (!containerRef.current || widgetId || !window.turnstile) return;
+      if (!containerRef.current || widgetId || !window.turnstile || cancelled) return;
       widgetId = window.turnstile.render(containerRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
         theme: "dark",
@@ -44,15 +45,17 @@ export function Turnstile({
       });
     };
 
-    const existing = document.querySelector<HTMLScriptElement>('script[src*="/turnstile/v0/api.js"]');
     const boot = () => {
       if (window.turnstile) render();
     };
+
+    let script: HTMLScriptElement | null = null;
+    const existing = document.querySelector<HTMLScriptElement>('script[src*="/turnstile/v0/api.js"]');
     if (existing) {
       existing.addEventListener("load", boot);
       boot();
     } else {
-      const script = document.createElement("script");
+      script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       script.async = true;
       script.addEventListener("load", boot);
@@ -60,6 +63,9 @@ export function Turnstile({
     }
 
     return () => {
+      cancelled = true;
+      const el = script ?? existing;
+      if (el) el.removeEventListener("load", boot);
       if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
     };
   }, []);
