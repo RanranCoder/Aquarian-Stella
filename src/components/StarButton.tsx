@@ -42,7 +42,7 @@ export function StarButton({
   disabled,
 }: StarButtonProps) {
   const base = cn(
-    "group/btn relative inline-flex items-center justify-center rounded-full font-medium",
+    "group/btn relative inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium",
     "transition-all duration-300 ease-luxe active:scale-[0.97]",
     "disabled:pointer-events-none disabled:opacity-50",
     VARIANTS[variant],

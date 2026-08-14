@@ -61,10 +61,12 @@ export function ProfilePage() {
   if (auth.status === "anonymous") {
     return (
       <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
-          <SparkleIcon className="h-3 w-3" />
-          个人中心
-        </span>
+        <div className="flex justify-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+            <SparkleIcon className="h-3 w-3" />
+            个人中心
+          </span>
+        </div>
         <div className="mt-6">
           <AccountCard />
         </div>
@@ -77,10 +79,12 @@ export function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
-        <SparkleIcon className="h-3 w-3" />
-        个人中心
-      </span>
+      <div className="flex justify-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+          <SparkleIcon className="h-3 w-3" />
+          个人中心
+        </span>
+      </div>
 
       <AccountCard />
 
