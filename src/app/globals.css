@@ -1,0 +1,307 @@
+@import "tailwindcss";
+
+/* ============================================================
+   星语星愿 · Design Tokens
+   深夜蓝黑宇宙 · 月光白文字 · 柔和紫/香槟金强调
+   ============================================================ */
+
+@theme {
+  /* --- Surfaces 深夜蓝黑 --- */
+  --color-night-950: #080a12; /* 页面底色 */
+  --color-night-900: #0d1124; /* 次级背景 */
+  --color-night-800: #12162b; /* 抬高面 */
+  --color-night-700: #1a2038; /* hover / 强调面 */
+  --color-night-600: #232b4a;
+
+  /* --- Text 月光白系 --- */
+  --color-moon-100: #f2eff8; /* 主文字 */
+  --color-moon-200: #e4e0ee; /* 次主文字 */
+  --color-moon-300: #c9c4d9; /* 辅助文字 */
+  --color-moon-400: #9e98b3; /* 弱文字 */
+  --color-moon-500: #837d9c; /* 占位/次级弱（#6E6885 对比度 3.75 不达 AA，提亮后 ≥4.5） */
+
+  /* --- Accent 柔和紫 --- */
+  --color-lav-200: #cfc5ea;
+  --color-lav-300: #b2a5dd;
+  --color-lav-400: #9b8ec4;
+  --color-lav-500: #8072ad;
+  --color-lav-600: #63558f;
+
+  /* --- Accent 香槟金 --- */
+  --color-gold-200: #ead9b4;
+  --color-gold-300: #dcc18c;
+  --color-gold-400: #c9a96e;
+  --color-gold-500: #b08d55;
+  --color-gold-600: #8f6e3f;
+
+  /* --- 玻璃 / 发丝线 --- */
+  --color-glass: rgba(255, 255, 255, 0.045);
+  --color-glass-strong: rgba(255, 255, 255, 0.08);
+  --color-hairline: rgba(255, 255, 255, 0.1);
+
+  /* --- Typography --- */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui,
+    "PingFang SC", "HarmonyOS Sans SC", "Noto Sans SC", "Source Han Sans SC",
+    "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular",
+    "JetBrains Mono", monospace;
+
+  /* --- Radius 圆角体系（统一） --- */
+  --radius-card: 1.25rem; /* 20px 卡片 */
+  --radius-panel: 1.75rem; /* 28px 大面板 */
+  --radius-input: 0.75rem; /* 12px 输入 */
+
+  /* --- Shadow 低阴影，带背景色相 --- */
+  --shadow-card: 0 8px 32px rgba(2, 4, 14, 0.45);
+  --shadow-card-lg: 0 28px 72px rgba(2, 4, 14, 0.6);
+  --shadow-glow-lav: 0 0 52px rgba(155, 142, 196, 0.16);
+  --shadow-glow-gold: 0 0 52px rgba(201, 169, 110, 0.15);
+
+  /* --- Easing 动效曲线（禁 linear） --- */
+  --ease-luxe: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* --- 动效 --- */
+  --animate-drift: drift 30s ease-in-out infinite alternate;
+  --animate-drift-slow: drift 48s ease-in-out infinite alternate;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-orbit: orbit 90s linear infinite;
+  --animate-twinkle: twinkle 5s ease-in-out infinite;
+  --animate-shoot: shoot 9s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.8s var(--ease-luxe) both;
+  --animate-breathe: breathe 6s ease-in-out infinite;
+
+  @keyframes drift {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(18px, -14px, 0);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  @keyframes orbit {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: scale(0.85);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes shoot {
+    0% {
+      transform: translate3d(0, 0, 0) rotate(-35deg);
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    22% {
+      transform: translate3d(-240px, 168px, 0) rotate(-35deg);
+      opacity: 0;
+    }
+    100% {
+      transform: translate3d(-240px, 168px, 0) rotate(-35deg);
+      opacity: 0;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes breathe {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-night-950);
+    color: var(--color-moon-100);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background: rgba(155, 142, 196, 0.35);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-lav-400);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* 个人中心「星空动效」开关的类级覆盖 */
+  html.motion-reduced *,
+  html.motion-reduced *::before,
+  html.motion-reduced *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@layer components {
+  /* 玻璃面板：半透明 + 细边框 + 低阴影 */
+  .glass {
+    background: var(--color-glass);
+    border: 1px solid var(--color-hairline);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      var(--shadow-card);
+  }
+
+  .glass-strong {
+    background: var(--color-glass-strong);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      var(--shadow-card-lg);
+  }
+
+  /* 文字渐变：月光金 */
+  .text-lux-gold {
+    background: linear-gradient(
+      120deg,
+      var(--color-gold-200),
+      var(--color-gold-400) 55%,
+      var(--color-gold-600)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* 文字渐变：月光紫 */
+  .text-lux-lav {
+    background: linear-gradient(
+      120deg,
+      var(--color-lav-200),
+      var(--color-lav-400) 55%,
+      var(--color-lav-600)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* 星空宇宙环境层：多层径向渐变星云，非满屏星星 */
+  .cosmic-sky {
+    background:
+      radial-gradient(
+        ellipse 60% 42% at 22% -6%,
+        rgba(99, 85, 143, 0.32),
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse 52% 40% at 84% 8%,
+        rgba(143, 110, 63, 0.16),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 70% 55% at 50% 118%,
+        rgba(40, 52, 100, 0.4),
+        transparent 65%
+      ),
+      linear-gradient(
+        180deg,
+        var(--color-night-950),
+        var(--color-night-900) 55%,
+        var(--color-night-950)
+      );
+  }
+
+  /* 大标题 */
+  .display-zh {
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+    font-weight: 600;
+  }
+
+  /* 发丝分隔线 */
+  .hairline-t {
+    border-top: 1px solid var(--color-hairline);
+  }
+  .hairline-b {
+    border-bottom: 1px solid var(--color-hairline);
+  }
+}
+
+/* ============================================================
+   细滚动条：统一所有滚动区域（页面、下拉面板、横向星座条）
+   ============================================================ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
