@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { downloadNodeAsPng } from "@/lib/share";
 import { StarButton } from "./StarButton";
-import { CheckIcon, ArrowUpRightIcon } from "./icons";
+import { CheckIcon } from "./icons";
 
 /**
  * 把指定 id 的节点（分享卡）导出为 PNG 图片。
@@ -48,10 +48,7 @@ export function SaveShareButton({
       ) : state === "saving" ? (
         "生成中…"
       ) : (
-        <>
-          <ArrowUpRightIcon className="h-4 w-4" />
-          保存图片
-        </>
+        "保存图片"
       )}
     </StarButton>
   );

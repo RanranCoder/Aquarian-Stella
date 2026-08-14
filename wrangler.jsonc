@@ -25,12 +25,14 @@
 		"binding": "IMAGES"
 	},
 	// D1 database for user/account data
-	// local dev is simulated by Miniflare via getPlatformProxy (placeholder id is fine)
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "xingyu-xingyuan-db",
-			"database_id": "local-dev-placeholder"
+			"database_id": "15599b1a-e849-4be0-9659-e0d9c0b48674"
 		}
-	]
+	],
+	"vars": {
+		"AUTH_FROM_EMAIL": "no-reply@mail.ranran.org.cn"
+	}
 }

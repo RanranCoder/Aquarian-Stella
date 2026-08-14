@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { store, useMounted } from "@/lib/store";
+import { useAuth } from "@/lib/use-auth";
 import {
   HomeIcon,
   SparkleIcon,
@@ -34,7 +35,11 @@ export function SiteNav() {
   const pathname = usePathname();
   const mounted = useMounted();
   const s = store.useStore();
-  const exploreHref = mounted && s.onboarded ? "/today" : "/onboarding";
+  const auth = useAuth();
+  const profile = mounted ? s.profile : null;
+  const displayName =
+    profile?.nickname ||
+    (auth.status === "authenticated" ? auth.email.split("@")[0] : "");
 
   return (
     <>
@@ -70,12 +75,26 @@ export function SiteNav() {
               </Link>
             );
           })}
-          <Link
-            href={exploreHref}
-            className="ml-2 rounded-full bg-gradient-to-b from-gold-200 to-gold-400 px-4 py-2 text-sm font-medium text-night-950 transition-transform duration-300 ease-luxe hover:-translate-y-px active:scale-95"
-          >
-            开始探索
-          </Link>
+          {auth.status === "authenticated" ? (
+            <Link
+              href="/profile"
+              className="ml-2 flex items-center"
+              aria-label="个人中心"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-b from-lav-300 to-lav-500 text-sm font-medium text-night-950 shadow-[0_0_18px_rgba(155,142,196,0.4)]">
+                {displayName.slice(0, 1) || "星"}
+              </span>
+            </Link>
+          ) : auth.status === "loading" ? (
+            <span className="ml-2 px-4 py-2 text-sm text-moon-500">…</span>
+          ) : (
+            <Link
+              href="/login"
+              className="ml-2 rounded-full bg-gradient-to-b from-gold-200 to-gold-400 px-4 py-2 text-sm font-medium text-night-950 transition-transform duration-300 ease-luxe hover:-translate-y-px active:scale-95"
+            >
+              登录
+            </Link>
+          )}
         </nav>
       </header>
 

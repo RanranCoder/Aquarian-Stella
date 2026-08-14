@@ -7,7 +7,6 @@ import { DatePicker } from "@/components/DatePicker";
 import {
   HeartIcon,
   SparkleIcon,
-  ArrowUpRightIcon,
   CheckIcon,
   ChevronLeftIcon,
 } from "@/components/icons";
@@ -284,10 +283,7 @@ export function RelationshipPage() {
                       已复制链接
                     </>
                   ) : (
-                    <>
-                      <ArrowUpRightIcon className="h-4 w-4" />
-                      复制分享链接
-                    </>
+                    "复制分享链接"
                   )}
                 </StarButton>
               </div>

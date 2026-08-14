@@ -5,7 +5,6 @@ import { GlassCard } from "@/components/GlassCard";
 import { StarButton } from "@/components/StarButton";
 import {
   StarIcon,
-  PlusIcon,
   CheckIcon,
   TrashIcon,
   SparkleIcon,
@@ -145,7 +144,6 @@ export function WishesPage() {
           arrow={false}
           onClick={() => setShowNew((v) => !v)}
         >
-          <PlusIcon className="h-4 w-4" />
           写星愿
         </StarButton>
       </div>
@@ -237,7 +235,6 @@ export function WishesPage() {
                   setShowNew(true);
                 }}
               >
-                <PlusIcon className="h-4 w-4" />
                 写下第一个愿望
               </StarButton>
             )}

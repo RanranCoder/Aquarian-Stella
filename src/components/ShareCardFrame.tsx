@@ -1,4 +1,4 @@
-import { StarIcon } from "./icons";
+import Image from "next/image";
 
 /**
  * 品牌分享卡框架（9:16，适配手机分享）。
@@ -23,19 +23,14 @@ export function ShareCardFrame({
       className="relative mx-auto flex flex-col overflow-hidden rounded-[28px] border border-[rgba(255,255,255,0.14)] px-7 pb-6 pt-7 shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
     >
       {/* 顶部品牌 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            style={{ background: "linear-gradient(180deg,#EAD9B4,#C9A96E)" }}
-            className="grid h-7 w-7 place-items-center rounded-full text-[#080A12]"
-          >
-            <StarIcon className="h-3.5 w-3.5" />
-          </span>
-          <span className="text-[15px] font-semibold tracking-wide text-[#F2EFF8]">
-            星语星愿
-          </span>
-        </div>
-        <span className="text-[#9B8EC4]">✦</span>
+      <div className="flex items-center">
+        <Image
+          src="/brand/logo-dark.png"
+          alt="星语星愿"
+          width={435}
+          height={161}
+          className="h-7 w-auto max-w-none"
+        />
       </div>
 
       {/* 内容区 */}

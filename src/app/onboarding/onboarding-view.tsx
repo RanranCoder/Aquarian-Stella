@@ -8,6 +8,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { TimePicker } from "@/components/TimePicker";
 import { CheckIcon, SparkleIcon, StarIcon } from "@/components/icons";
 import { store, useMounted } from "@/lib/store";
+import { useAuth } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
 import type { BirthProfile } from "@/lib/astrology";
 
@@ -28,6 +29,7 @@ export function OnboardingPage() {
   const router = useRouter();
   const mounted = useMounted();
   const s = store.useStore();
+  const auth = useAuth();
   const existing = mounted ? s.profile : null;
 
   const [step, setStep] = useState(0);
@@ -90,6 +92,35 @@ export function OnboardingPage() {
     store.set((s) => ({ ...s, onboarded: true, profile }));
     // 编辑已有档案时跳过"正在整理星象"假延迟，快速回到今日星语
     window.setTimeout(() => router.push("/today"), isEditing ? 400 : 2200);
+  }
+
+  // 加载登录状态中
+  if (auth.status === "loading") {
+    return (
+      <div className="mx-auto max-w-xl px-6 py-24 text-center text-sm text-moon-500">
+        加载中…
+      </div>
+    );
+  }
+
+  // 未登录：先登录再填写出生信息
+  if (auth.status === "anonymous") {
+    return (
+      <div className="mx-auto max-w-xl px-6 py-16 md:py-24">
+        <GlassCard glow="lav">
+          <div className="flex flex-col items-center gap-5 px-8 py-14 text-center">
+            <SparkleIcon className="h-8 w-8 text-lav-300" />
+            <h1 className="display-zh text-2xl">登录后，再认识你的星星</h1>
+            <p className="max-w-sm text-sm leading-relaxed text-moon-400">
+              登录后才可以填写出生信息、生成你的星盘与今日星语。
+            </p>
+            <StarButton href="/login" arrow>
+              去登录
+            </StarButton>
+          </div>
+        </GlassCard>
+      </div>
+    );
   }
 
   return (

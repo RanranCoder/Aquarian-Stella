@@ -13,6 +13,7 @@ import {
   SparkleIcon,
 } from "@/components/icons";
 import { store, useMounted, motionPref } from "@/lib/store";
+import { useAuth } from "@/lib/use-auth";
 import { getSunSignFromDate } from "@/lib/astrology";
 import { formatDateCN } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ function Row({ label, value }: { label: string; value: string }) {
 export function ProfilePage() {
   const mounted = useMounted();
   const s = store.useStore();
+  const auth = useAuth();
   const profile = mounted ? s.profile : null;
 
   const [confirmClear, setConfirmClear] = useState(false);
@@ -46,6 +48,32 @@ export function ProfilePage() {
   }
 
   const sun = profile ? getSunSignFromDate(profile.birthDate) : null;
+
+  // 未登录：只展示账号卡片，不显示出生信息等个人资料
+  if (auth.status === "loading") {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-24 text-center text-sm text-moon-500">
+        加载中…
+      </div>
+    );
+  }
+
+  if (auth.status === "anonymous") {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+          <SparkleIcon className="h-3 w-3" />
+          个人中心
+        </span>
+        <div className="mt-6">
+          <AccountCard />
+        </div>
+        <p className="mt-6 text-center text-sm text-moon-500">
+          登录后即可管理你的出生信息与星愿。
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
