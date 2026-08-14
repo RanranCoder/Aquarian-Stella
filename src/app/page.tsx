@@ -40,12 +40,9 @@ export default function HomePage() {
           <span className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-b from-gold-200 to-gold-400 text-night-950 shadow-[0_0_40px_rgba(201,169,110,0.4)]">
             <StarIcon className="h-6 w-6" />
           </span>
-          <h1 className="display-zh text-5xl tracking-[0.06em] md:text-7xl">
-            星语星愿
-          </h1>
-          <p className="max-w-xl text-lg leading-relaxed text-moon-300 md:text-2xl md:leading-snug">
+          <h1 className="display-zh max-w-3xl text-4xl leading-[1.15] tracking-[0.02em] md:text-6xl md:leading-[1.12]">
             今晚的星星，想和你说些什么？
-          </p>
+          </h1>
           <p className="max-w-md text-[15px] leading-relaxed text-moon-400">
             看见星象，也看见自己。把复杂的星象翻译成你可以理解、可以反思、可以记录的语言。
           </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { store, useMounted } from "@/lib/store";
@@ -40,13 +41,15 @@ export function SiteNav() {
       {/* 桌面端 · 浮岛玻璃导航 */}
       <header className="fixed inset-x-0 top-0 z-40 hidden justify-center px-6 pt-5 md:flex">
         <nav className="glass-strong flex items-center gap-1 rounded-full py-1.5 pl-2.5 pr-1.5">
-          <Link href="/" className="mr-3 flex items-center gap-2 px-2 py-1.5">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-b from-gold-200 to-gold-400 text-night-950">
-              <StarIcon className="h-3.5 w-3.5" />
-            </span>
-            <span className="text-[15px] font-semibold tracking-wide">
-              星语星愿
-            </span>
+          <Link href="/" className="mr-2 flex items-center px-2 py-1.5" aria-label="星语星愿 首页">
+            <Image
+              src="/brand/logo-main.png"
+              alt="星语星愿"
+              width={1020}
+              height={305}
+              className="h-8 w-auto"
+              priority
+            />
           </Link>
           {DESKTOP_LINKS.map((link) => {
             const active = isActive(pathname, link.href);
