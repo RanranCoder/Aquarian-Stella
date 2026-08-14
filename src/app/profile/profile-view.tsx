@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { GlassCard } from "@/components/GlassCard";
+import { AccountCard } from "@/components/AccountCard";
 import { StarButton } from "@/components/StarButton";
 import {
   ShieldIcon,
@@ -52,6 +53,8 @@ export function ProfilePage() {
         <SparkleIcon className="h-3 w-3" />
         个人中心
       </span>
+
+      <AccountCard />
 
       {/* 资料卡 */}
       <GlassCard glow="lav" className="mt-6 mb-5">
@@ -168,7 +171,7 @@ export function ProfilePage() {
             隐私
           </h2>
           <p className="leading-relaxed text-moon-400">
-            你的出生资料与星愿默认只保存在这台设备的浏览器里，不会上传到服务器。你可以随时清除。
+            你的账号信息（邮箱）存储于服务器；出生资料与星愿仍只保存在这台设备的浏览器里。
           </p>
         </div>
       </GlassCard>
