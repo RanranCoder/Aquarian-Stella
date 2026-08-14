@@ -37,9 +37,14 @@ export function SiteNav() {
   const s = store.useStore();
   const auth = useAuth();
   const profile = mounted ? s.profile : null;
+  // 用户填过昵称就用昵称首字，否则回落邮箱前缀
+  const nick = (profile?.nickname || "").trim();
   const displayName =
-    profile?.nickname ||
-    (auth.status === "authenticated" ? auth.email.split("@")[0] : "");
+    nick && nick !== "星星"
+      ? nick
+      : auth.status === "authenticated"
+        ? auth.email.split("@")[0]
+        : "";
 
   return (
     <>

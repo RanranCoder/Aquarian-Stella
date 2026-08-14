@@ -103,7 +103,7 @@ export function TodayPage() {
               {formatDateCN(date)}
             </p>
             <p className="mt-1 text-sm text-moon-500">
-              {sun.name} · {profile.nickname}
+              {sun.name} · {profile.nickname || "星星"}
             </p>
             <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-2.5 py-0.5 text-xs text-moon-400">
               <MoonPhaseIcon className="h-3.5 w-3.5 text-moon-300" />

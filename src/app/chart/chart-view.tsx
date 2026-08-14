@@ -125,7 +125,7 @@ export function ChartPage() {
               我的星盘
             </span>
             <h1 className="display-zh mt-5 text-3xl md:text-4xl">
-              {profile.nickname}，你的三颗主星
+              {profile.nickname || "星星"}，你的三颗主星
             </h1>
             <p className="mt-3 text-sm text-moon-400">
               太阳、月亮与上升，是你认识自己的三个起点。

@@ -82,7 +82,7 @@ export function OnboardingPage() {
   function finish() {
     setGenerating(true);
     const profile: BirthProfile = {
-      nickname: nickname.trim() || "星星",
+      nickname: nickname.trim(),
       birthDate,
       birthTime: timeChoice === "unknown" ? undefined : time || undefined,
       birthTimeAccuracy: timeChoice ?? "unknown",
