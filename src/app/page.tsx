@@ -37,9 +37,6 @@ export default function HomePage() {
         </div>
 
         <div className="relative flex flex-col items-center gap-6">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-b from-gold-200 to-gold-400 text-night-950 shadow-[0_0_40px_rgba(201,169,110,0.4)]">
-            <StarIcon className="h-6 w-6" />
-          </span>
           <h1 className="display-zh max-w-3xl text-4xl leading-[1.15] tracking-[0.02em] md:text-6xl md:leading-[1.12]">
             今晚的星星，想和你说些什么？
           </h1>
