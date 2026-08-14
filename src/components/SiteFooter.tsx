@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StarIcon } from "./icons";
+import Image from "next/image";
 
 const FOOTER_LINKS = [
   { label: "今日星语", href: "/today" },
@@ -15,13 +15,15 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="hairline-t py-10">
           <div className="flex flex-col items-center gap-6">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-b from-gold-200 to-gold-400 text-night-950">
-                <StarIcon className="h-3.5 w-3.5" />
-              </span>
-              <span className="text-[15px] font-semibold tracking-wide">
-                星语星愿
-              </span>
+            <Link href="/" className="block" aria-label="星语星愿 首页">
+              <Image
+                src="/brand/logo-dark.png"
+                alt="星语星愿"
+                width={435}
+                height={161}
+                className="h-8 w-auto max-w-none"
+                loading="eager"
+              />
             </Link>
 
             <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
