@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MailIntro } from "@/components/mail/MailIntro";
 import { MailCompose } from "@/components/mail/MailCompose";
 import { MailPreview } from "@/components/mail/MailPreview";
@@ -23,17 +23,27 @@ export function errorText(reason: string): string {
 }
 
 export function MailView() {
-  // 登录跳回 /mail 时，若本地有未寄出的草稿，直接回到写信步，而非 intro
-  const [step, setStep] = useState<Step>(() =>
-    typeof window !== "undefined" && window.localStorage.getItem(STAR_MAIL_DRAFT_KEY)
-      ? "compose"
-      : "intro",
-  );
+  // 初始步恒为 intro，避免客户端读到 localStorage 与服务端渲染不一致导致 hydration 失败；
+  // 挂载后若有未寄出草稿（含登录跳回场景），再切到写信步。
+  const [step, setStep] = useState<Step>("intro");
   const [draft, setDraft] = useState<StarMailDraft | null>(null);
   const [token, setToken] = useState("");
   const [previewKey, setPreviewKey] = useState(0);
   const [sendError, setSendError] = useState("");
   const [masked, setMasked] = useState("");
+
+  useEffect(() => {
+    let hasDraft = false;
+    try {
+      hasDraft = !!window.localStorage.getItem(STAR_MAIL_DRAFT_KEY);
+    } catch {
+      // localStorage 不可用时忽略
+    }
+    if (!hasDraft) return;
+    // 延迟到首帧后切到写信步：既避开 hydration 不匹配，也不在 effect 内同步 setState
+    const id = window.requestAnimationFrame(() => setStep("compose"));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
 
   return (
     <div className="mx-auto flex min-h-[70dvh] w-full max-w-2xl flex-col items-center justify-center px-5 py-14 md:py-20">
