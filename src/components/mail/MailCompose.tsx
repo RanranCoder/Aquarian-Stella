@@ -35,6 +35,7 @@ function loadDraft(): StarMailDraft | null {
       signatureType: parsed.signatureType ?? "name",
       customSignature: parsed.customSignature ?? "",
       body: parsed.body ?? "",
+      taName: parsed.taName ?? "",
     };
   } catch {
     return null;
@@ -57,6 +58,9 @@ export function MailCompose({
   const [recipient, setRecipient] = useState(
     initial?.recipient ?? (typeof window !== "undefined" ? loadDraft()?.recipient ?? "" : ""),
   );
+  const [taName, setTaName] = useState(
+    initial?.taName ?? (typeof window !== "undefined" ? loadDraft()?.taName ?? "" : ""),
+  );
   const [title, setTitle] = useState(
     initial?.title ?? (typeof window !== "undefined" ? loadDraft()?.title ?? "" : ""),
   );
@@ -77,14 +81,14 @@ export function MailCompose({
       try {
         window.localStorage.setItem(
           STAR_MAIL_DRAFT_KEY,
-          JSON.stringify({ recipient, title, signatureType, customSignature, body }),
+          JSON.stringify({ recipient, taName, title, signatureType, customSignature, body }),
         );
       } catch {
         // localStorage 不可用时静默降级
       }
     }, 300);
     return () => window.clearTimeout(t);
-  }, [recipient, title, signatureType, customSignature, body]);
+  }, [recipient, taName, title, signatureType, customSignature, body]);
 
   const emailOk = isValidEmailShape(recipient.trim());
   const bodyLen = body.length;
@@ -92,11 +96,13 @@ export function MailCompose({
   function handlePreview() {
     setError("");
     if (!recipient.trim()) { setError("请填写收件邮箱"); return; }
+    if (!taName.trim()) { setError("请填写 Ta 的昵称"); return; }
     if (!emailOk) { setError("邮箱格式不正确，请检查后再试"); return; }
     if (!body.trim()) { setError("写点什么吧，哪怕只有一句话"); return; }
     if (bodyLen > 2000) { setError("正文不能超过 2000 字"); return; }
     onPreview({
       recipient: recipient.trim().toLowerCase(),
+      taName: taName.trim(),
       title: title.trim(),
       signatureType,
       customSignature: customSignature.trim(),
@@ -128,6 +134,20 @@ export function MailCompose({
           <p className="text-[11px] leading-relaxed text-moon-500">
             请确认邮箱地址准确无误，Stella 会将这封信寄往这里。
           </p>
+        </div>
+
+        {/* Ta 的昵称 */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs text-moon-500" htmlFor="sm-taname">Ta 的昵称</label>
+          <input
+            id="sm-taname"
+            type="text"
+            value={taName}
+            onChange={(e) => setTaName(e.target.value)}
+            placeholder="比如：小星 / 小冉"
+            maxLength={20}
+            className={INPUT_CLASS}
+          />
         </div>
 
         {/* 标题 */}

@@ -49,7 +49,7 @@ export function MailPreview({
           </h2>
         </div>
         <div className="mx-auto mt-6 h-px w-24 bg-[#EAD9B4]" />
-        <p className="mt-6 text-[15px] leading-loose text-[#1B2034]">亲爱的 Ta：</p>
+        <p className="mt-6 text-[15px] leading-loose text-[#1B2034]">亲爱的 {draft.taName}：</p>
         <p className="mt-2 whitespace-pre-line text-[15px] leading-loose text-[#1B2034]">{draft.body}</p>
         <p className="mt-8 text-right text-[15px] text-[#1B2034]">—— {signature}</p>
         <div className="mt-10 text-center">

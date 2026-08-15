@@ -75,6 +75,7 @@ export function MailSealing({
             title: draft.title.trim(),
             body: draft.body,
             signature: resolveSignature(draft, nicknameRef.current),
+            taName: draft.taName.trim(),
             turnstileToken,
           }),
         });
