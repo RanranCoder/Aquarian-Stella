@@ -59,3 +59,17 @@ export async function claimRate(db: D1Database, email: string, ip: string): Prom
   if (!ipOk) return { allowed: false, retryAfterSec: RATE_HOUR_SEC };
   return { allowed: true };
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** 24h 日限流（星邮用）：原子 claim，达到 max 即拒绝。 */
+export async function claimDailyRate(
+  db: D1Database,
+  key: string,
+  max: number,
+  now: number,
+): Promise<RateLimitResult> {
+  const windowEnd = now + DAY_MS;
+  const ok = await claimSlot(db, key, max, windowEnd, now);
+  return ok ? { allowed: true } : { allowed: false, retryAfterSec: 24 * 60 * 60 };
+}

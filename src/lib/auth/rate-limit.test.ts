@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { D1Database } from "@cloudflare/workers-types";
-import { claimRate } from "./rate-limit";
+import { claimDailyRate, claimRate } from "./rate-limit";
 import { RATE_EMAIL_PER_HOUR, RATE_IP_PER_HOUR } from "./types";
 import { MemoryD1 } from "./d1-mock";
 
@@ -35,5 +35,18 @@ describe("rate-limit", () => {
     db.seed("rate_limits", "otp:rate:a@b.com", { count: RATE_EMAIL_PER_HOUR, window_end: Date.now() - 1000 });
     const r = await claimRate(db as unknown as D1Database, "a@b.com", "9.9.9.9");
     expect(r.allowed).toBe(true);
+  });
+
+  it("claimDailyRate blocks after max and resets after 24h", async () => {
+    const db = new MemoryD1();
+    const d = db as unknown as D1Database;
+    const now = Date.now();
+    for (let i = 0; i < 3; i++) {
+      expect((await claimDailyRate(d, "starmail:user:1", 3, now)).allowed).toBe(true);
+    }
+    expect((await claimDailyRate(d, "starmail:user:1", 3, now)).allowed).toBe(false);
+    // 窗口过期后放行
+    db.seed("rate_limits", "starmail:user:1", { count: 3, window_end: now - 1000 });
+    expect((await claimDailyRate(d, "starmail:user:1", 3, now)).allowed).toBe(true);
   });
 });
