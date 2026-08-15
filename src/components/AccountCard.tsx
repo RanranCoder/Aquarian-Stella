@@ -26,7 +26,7 @@ function errorText(e?: string): string {
   }
 }
 
-export function AccountCard() {
+export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
   const [state, setState] = useState<AccountState>({ status: "loading" });
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -119,6 +119,7 @@ export function AccountCard() {
       }
       setCode("");
       await refreshMe();
+      onAuthed?.();
     } catch {
       setError("登录失败，请稍后重试");
     } finally {

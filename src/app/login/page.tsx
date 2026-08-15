@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "登录星语星愿，保存你的出生信息与星愿。",
 };
 
-export default function Page() {
-  return <LoginView />;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  return <LoginView next={next ?? "/"} />;
 }

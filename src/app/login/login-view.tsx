@@ -1,9 +1,16 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { AccountCard } from "@/components/AccountCard";
 
-export function LoginView() {
+export function LoginView({ next }: { next: string }) {
+  const router = useRouter();
+  const onAuthed = () => {
+    // 只接受站内相对路径，防开放重定向
+    if (next.startsWith("/") && !next.startsWith("//")) router.replace(next);
+  };
+
   return (
     <div className="mx-auto max-w-md px-6 py-16 md:py-24">
       <div className="mb-6 flex flex-col items-center gap-4 text-center">
@@ -19,7 +26,7 @@ export function LoginView() {
           登录后，你的出生信息与星愿会保存在你的账号下。
         </p>
       </div>
-      <AccountCard />
+      <AccountCard onAuthed={onAuthed} />
     </div>
   );
 }
