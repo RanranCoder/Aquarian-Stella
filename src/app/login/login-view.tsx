@@ -7,8 +7,12 @@ import { AccountCard } from "@/components/AccountCard";
 export function LoginView({ next }: { next: string }) {
   const router = useRouter();
   const onAuthed = () => {
-    // 只接受站内相对路径，防开放重定向
-    if (next.startsWith("/") && !next.startsWith("//")) router.replace(next);
+    try {
+      const url = new URL(next, window.location.origin);
+      if (url.origin === window.location.origin) router.replace(next);
+    } catch {
+      // 非法 next，忽略
+    }
   };
 
   return (

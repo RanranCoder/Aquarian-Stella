@@ -41,9 +41,11 @@ export function MailSealing({
     onErrorRef.current = onError;
   }, [nickname, onDone, onError]);
 
-  // 动画时长（尊重 prefers-reduced-motion）
+  // 动画时长（尊重 prefers-reduced-motion 与 app 内动效开关）
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced =
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      document.documentElement.classList.contains("motion-reduced");
     const t = window.setTimeout(() => setAnimDone(true), reduced ? 500 : 2600);
     return () => window.clearTimeout(t);
   }, []);
