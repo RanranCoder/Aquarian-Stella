@@ -34,13 +34,14 @@ export async function POST(request: NextRequest) {
   const title = typeof body.title === "string" ? body.title : "";
   const signature = typeof body.signature === "string" ? body.signature : "";
   const rawBody = typeof body.body === "string" ? body.body : "";
+  const taName = typeof body.taName === "string" ? body.taName : "";
   const turnstileToken = typeof body.turnstileToken === "string" ? body.turnstileToken : "";
   if (!turnstileToken) return NextResponse.json({ error: "MISSING_TURNSTILE" }, { status: 400 });
 
-  const v = validateStarMail({ recipient, title, body: rawBody, signature });
+  const v = validateStarMail({ recipient, title, body: rawBody, signature, taName });
   if (!v.ok) return NextResponse.json({ error: v.reason }, { status: 400 });
 
-  const mod = checkModeration({ title: v.title, body: v.body, signature: v.signature });
+  const mod = checkModeration({ title: v.title, body: v.body, signature: v.signature, taName: v.taName });
   if (!mod.allowed) return NextResponse.json({ error: mod.reason }, { status: 403 });
 
   const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
   const masked = maskEmail(v.recipient);
   const domain = v.recipient.split("@")[1] ?? "";
 
-  const html = buildStarMailHtml({ title: v.title, body: v.body, signature: v.signature });
+  const html = buildStarMailHtml({ title: v.title, body: v.body, signature: v.signature, taName: v.taName });
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
