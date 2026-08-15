@@ -36,6 +36,18 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* 星邮入口：这里藏着一封信（桌面端） */}
+        <Link
+          href="/mail"
+          aria-label="这里藏着一封信，点击进入星邮"
+          className="group absolute right-[7%] top-[16%] hidden flex-col items-end gap-2 md:flex"
+        >
+          <span className="h-px w-28 bg-gradient-to-r from-transparent via-gold-300/90 to-transparent" />
+          <span className="text-[11px] text-moon-500 transition-colors group-hover:text-gold-300">
+            ✦ 这里藏着一封信
+          </span>
+        </Link>
+
         <div className="relative flex flex-col items-center gap-6">
           <h1 className="display-zh max-w-3xl text-4xl leading-[1.15] tracking-[0.02em] md:text-6xl md:leading-[1.12]">
             今晚的星星，想和你说些什么？

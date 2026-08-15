@@ -289,6 +289,20 @@ export function RelationshipPage() {
               </div>
             </div>
           </GlassCard>
+          {/* 星邮入口 */}
+          <GlassCard glow="gold">
+            <div className="flex flex-col items-center gap-4 px-8 py-12 text-center">
+              <p className="display-zh text-xl text-moon-200 md:text-2xl">
+                你和 Ta 的星星已经相遇。
+              </p>
+              <p className="max-w-sm text-sm leading-relaxed text-moon-400">
+                还有一句话，你一直没有告诉 Ta 吗？
+              </p>
+              <StarButton href="/mail" size="lg" arrow>
+                写封信给 Ta
+              </StarButton>
+            </div>
+          </GlassCard>
         </>
       )}
     </div>
