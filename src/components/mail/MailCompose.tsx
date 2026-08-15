@@ -49,7 +49,8 @@ export function MailCompose({
   onPreview: (draft: StarMailDraft) => void;
 }) {
   const mounted = useMounted();
-  const nickname = mounted ? store.useStore().profile?.nickname ?? "" : "";
+  const s = store.useStore();
+  const nickname = mounted ? s.profile?.nickname ?? "" : "";
 
   // 首次挂载：优先用父组件传入的 initial；没有（如登录跳回/直开 /mail）则从 localStorage 恢复草稿。
   // typeof window 守卫避免 SSR 期间访问 localStorage。
