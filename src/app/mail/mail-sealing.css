@@ -1,0 +1,31 @@
+/* src/app/mail/mail-sealing.css */
+@keyframes sm-fold {
+  0% { transform: rotateX(0deg) scale(1); opacity: 1; }
+  100% { transform: rotateX(90deg) scale(0.8); opacity: 0.3; }
+}
+@keyframes sm-envelope-in {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes sm-fly {
+  0% { transform: translate3d(0, 0, 0) rotate(-6deg) scale(1); opacity: 1; }
+  18% { opacity: 1; }
+  100% { transform: translate3d(150px, -280px, 0) rotate(-28deg) scale(0.4); opacity: 0; }
+}
+@keyframes sm-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.seal-stage { perspective: 900px; }
+.seal-letter {
+  transform-origin: bottom center;
+  animation: sm-fold 0.9s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+.seal-envelope {
+  opacity: 0;
+  animation:
+    sm-envelope-in 0.45s cubic-bezier(0.32, 0.72, 0, 1) 0.9s both,
+    sm-fly 1.15s cubic-bezier(0.16, 1, 0.3, 1) 1.45s forwards;
+}
+.seal-text-1 { animation: sm-fade 0.4s ease-in-out 0.2s both; }
+.seal-text-2 { animation: sm-fade 0.4s ease-in-out 1.1s both; }
