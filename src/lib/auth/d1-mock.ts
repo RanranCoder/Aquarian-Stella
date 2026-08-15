@@ -62,6 +62,13 @@ export class MemoryD1 {
       }
       return { success: true, meta: { changes: 0, last_row_id: 0 } };
     }
+    if (sql.includes("INSERT INTO star_mails")) {
+      const [userId, recipient, recipientDomain, title, signature] = params as [number, string, string, string, string];
+      const t = this.table("star_mails");
+      const id = t.size + 1;
+      t.set(String(id), { id, user_id: userId, recipient, recipient_domain: recipientDomain, title, signature, status: "sent" });
+      return { success: true, meta: { changes: 1, last_row_id: id } };
+    }
     if (sql.includes("UPDATE rate_limits SET count = count + 1")) {
       const [key, max] = params as [string, number];
       const row = this.table("rate_limits").get(key);
@@ -116,5 +123,17 @@ export class MemoryD1 {
       return { hash: row.hash } as T;
     }
     return null;
+  }
+
+  /** 星邮记录查询（仅测试断言用）。 */
+  getStarMails(): Array<{ user_id: number; recipient: string; recipient_domain: string; title: string; signature: string; status: string }> {
+    return Array.from(this.table("star_mails").values()) as Array<{
+      user_id: number;
+      recipient: string;
+      recipient_domain: string;
+      title: string;
+      signature: string;
+      status: string;
+    }>;
   }
 }
