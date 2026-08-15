@@ -8,6 +8,7 @@ declare global {
     AUTH_FROM_EMAIL: string;
     AUTH_DEV_LOG_CODE?: string;
     TURNSTILE_SECRET_KEY: string;
+    STAR_MAIL_FROM_EMAIL: string;
   }
 }
 
