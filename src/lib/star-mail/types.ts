@@ -4,6 +4,7 @@ export interface StarMailDraft {
   signatureType: "name" | "anonymous" | "custom";
   customSignature: string;
   body: string;
+  taName: string;
 }
 
 export const STAR_MAIL_DRAFT_KEY = "xingyu-starmail-draft";

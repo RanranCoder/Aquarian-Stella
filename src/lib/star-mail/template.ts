@@ -7,9 +7,10 @@ export function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-export function buildStarMailHtml(opts: { title: string; body: string; signature: string }): string {
+export function buildStarMailHtml(opts: { title: string; body: string; signature: string; taName: string }): string {
   const title = escapeHtml(opts.title);
   const signature = escapeHtml(opts.signature);
+  const taName = escapeHtml(opts.taName);
   const body = opts.body.split("\n").map(escapeHtml).join("<br>");
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -20,7 +21,7 @@ export function buildStarMailHtml(opts: { title: string; body: string; signature
     <p style="text-align:center;font-size:12px;color:#9E98B3;margin:6px 0 0;">星语 · 星愿 · 星邮</p>
     <hr style="border:none;border-top:1px solid #EAD9B4;margin:26px 0;">
     <h2 style="font-size:16px;font-weight:600;margin:0 0 14px;color:#0D1124;">${title}</h2>
-    <p style="font-size:15px;line-height:1.9;color:#1B2034;margin:0 0 8px;">亲爱的 Ta：</p>
+    <p style="font-size:15px;line-height:1.9;color:#1B2034;margin:0 0 8px;">亲爱的 ${taName}：</p>
     <p style="font-size:15px;line-height:1.9;color:#1B2034;margin:0 0 18px;">${body}</p>
     <p style="text-align:right;font-size:14px;color:#1B2034;margin:0;">—— ${signature}</p>
     <hr style="border:none;border-top:1px solid #EAD9B4;margin:26px 0;">

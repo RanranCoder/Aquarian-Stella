@@ -14,8 +14,9 @@ export function checkModeration(input: {
   title: string;
   body: string;
   signature: string;
+  taName: string;
 }): Moderation {
-  const text = `${input.title}\n${input.body}\n${input.signature}`;
+  const text = `${input.title}\n${input.taName}\n${input.body}\n${input.signature}`;
   const urls = text.match(URL_RE) ?? [];
   if (urls.length > 2) return { allowed: false, reason: "SPAM_URL" };
 

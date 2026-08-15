@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateStarMail, isValidEmailShape, BODY_MAX, SIGNATURE_MAX, TITLE_MAX } from "./validate";
+import { validateStarMail, isValidEmailShape, BODY_MAX, SIGNATURE_MAX, TITLE_MAX, TA_NAME_MAX } from "./validate";
 
 describe("isValidEmailShape", () => {
   it("accepts normal emails", () => {
@@ -15,10 +15,10 @@ describe("isValidEmailShape", () => {
 });
 
 describe("validateStarMail", () => {
-  const base = { recipient: "ta@gmail.com", title: "有些话想告诉你", body: "你好。", signature: "R" };
+  const base = { recipient: "ta@gmail.com", title: "有些话想告诉你", body: "你好。", signature: "R", taName: "小星" };
   it("passes valid input and returns normalized fields", () => {
-    const r = validateStarMail({ ...base, recipient: "  Ta@Gmail.com  ", title: "  标题  " });
-    expect(r).toEqual({ ok: true, recipient: "ta@gmail.com", title: "标题", body: "你好。", signature: "R" });
+    const r = validateStarMail({ ...base, recipient: "  Ta@Gmail.com  ", title: "  标题  ", taName: "  小星  " });
+    expect(r).toEqual({ ok: true, recipient: "ta@gmail.com", title: "标题", body: "你好。", signature: "R", taName: "小星" });
   });
   it("rejects invalid recipient", () => {
     expect(validateStarMail({ ...base, recipient: "bad" })).toMatchObject({ ok: false, field: "recipient" });
@@ -34,5 +34,11 @@ describe("validateStarMail", () => {
   });
   it("rejects signature over the max", () => {
     expect(validateStarMail({ ...base, signature: "x".repeat(SIGNATURE_MAX + 1) })).toMatchObject({ ok: false, field: "signature" });
+  });
+  it("rejects empty taName", () => {
+    expect(validateStarMail({ ...base, taName: "   " })).toMatchObject({ ok: false, field: "taName", reason: "TA_NAME_EMPTY" });
+  });
+  it("rejects taName over the max", () => {
+    expect(validateStarMail({ ...base, taName: "x".repeat(TA_NAME_MAX + 1) })).toMatchObject({ ok: false, field: "taName", reason: "TA_NAME_TOO_LONG" });
   });
 });

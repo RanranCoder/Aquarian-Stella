@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { checkModeration } from "./moderation";
 
-const base = { title: "标题", body: "正文内容", signature: "R" };
+const base = { title: "标题", body: "正文内容", signature: "R", taName: "小星" };
 
 describe("checkModeration", () => {
   it("allows clean content", () => {
@@ -16,6 +16,9 @@ describe("checkModeration", () => {
   });
   it("rejects spam keywords in any field", () => {
     expect(checkModeration({ ...base, signature: "加微信看更多" })).toEqual({ allowed: false, reason: "SPAM_KEYWORD" });
+  });
+  it("rejects spam keywords in taName", () => {
+    expect(checkModeration({ ...base, taName: "加微信" })).toEqual({ allowed: false, reason: "SPAM_KEYWORD" });
   });
   it("rejects a body line repeated 5+ times", () => {
     const body = Array.from({ length: 5 }, () => "关注我").join("\n");
