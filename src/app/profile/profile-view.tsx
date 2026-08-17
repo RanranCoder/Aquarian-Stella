@@ -60,7 +60,7 @@ export function ProfilePage() {
 
   if (auth.status === "anonymous") {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+      <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
         <div className="flex justify-center">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
             <SparkleIcon className="h-3 w-3" />
@@ -78,7 +78,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
       <div className="flex justify-center">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
           <SparkleIcon className="h-3 w-3" />
@@ -90,7 +90,7 @@ export function ProfilePage() {
 
       {/* 资料卡 */}
       <GlassCard glow="lav" className="mt-6 mb-5">
-        <div className="flex flex-col gap-6 p-8 md:flex-row md:items-center md:gap-8">
+        <div className="flex flex-col gap-6 p-card md:flex-row md:items-center md:gap-8">
           <div className="relative mx-auto md:mx-0">
             <span className="grid h-20 w-20 place-items-center rounded-full bg-gradient-to-b from-lav-300 to-lav-500 text-3xl font-medium text-night-950">
               {(profile?.nickname || "星").slice(0, 1)}
@@ -130,7 +130,7 @@ export function ProfilePage() {
 
       {/* 出生资料 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="p-8">
+        <div className="p-card">
           <h2 className="mb-4 text-sm tracking-[0.18em] text-moon-500">
             出生资料
           </h2>
@@ -165,7 +165,7 @@ export function ProfilePage() {
 
       {/* 我的历史 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="p-8">
+        <div className="p-card">
           <h2 className="mb-4 text-sm tracking-[0.18em] text-moon-500">
             我的历史
           </h2>
@@ -197,7 +197,7 @@ export function ProfilePage() {
 
       {/* 隐私 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="p-8">
+        <div className="p-card">
           <h2 className="mb-4 flex items-center gap-2 text-sm tracking-[0.18em] text-moon-500">
             <ShieldIcon className="h-4 w-4" />
             隐私
@@ -210,7 +210,7 @@ export function ProfilePage() {
 
       {/* 显示设置 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="p-8">
+        <div className="p-card">
           <h2 className="mb-4 flex items-center gap-2 text-sm tracking-[0.18em] text-moon-500">
             <SettingsIcon className="h-4 w-4" />
             显示设置
@@ -241,7 +241,7 @@ export function ProfilePage() {
 
       {/* 清除数据 */}
       <GlassCard glow="none">
-        <div className="p-8">
+        <div className="p-card">
           <h2 className="mb-4 text-sm tracking-[0.18em] text-moon-500">
             数据管理
           </h2>
