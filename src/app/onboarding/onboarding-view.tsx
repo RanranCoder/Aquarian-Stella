@@ -106,9 +106,9 @@ export function OnboardingPage() {
   // 未登录：先登录再填写出生信息
   if (auth.status === "anonymous") {
     return (
-      <div className="mx-auto max-w-xl px-6 py-16 md:py-24">
+      <div className="mx-auto max-w-xl px-6 pt-16 pb-24 md:py-24">
         <GlassCard glow="lav">
-          <div className="flex flex-col items-center gap-5 px-8 py-14 text-center">
+          <div className="flex flex-col items-center gap-5 px-card py-10 text-center">
             <SparkleIcon className="h-8 w-8 text-lav-300" />
             <h1 className="display-zh text-2xl">登录后，再认识你的星星</h1>
             <p className="max-w-sm text-sm leading-relaxed text-moon-400">
@@ -124,7 +124,7 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-10 md:py-16">
+    <div className="mx-auto flex max-w-xl flex-col items-center px-6 pt-10 pb-24 md:py-16">
       {/* 进度 */}
       <div className="mb-10 flex items-center gap-2">
         {STEPS.map((label, i) => (
@@ -154,7 +154,7 @@ export function OnboardingPage() {
       </div>
 
       <GlassCard glow="lav" className="w-full">
-        <div className="p-8 md:p-10">
+        <div className="p-card md:p-10">
           {!generating ? (
             <>
               <div key={step} className="animate-fade-up flex flex-col gap-8">
