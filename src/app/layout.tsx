@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CosmicBackground } from "@/components/CosmicBackground";
@@ -38,6 +38,13 @@ export const metadata: Metadata = {
     locale: "zh_CN",
     type: "website",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#080a12",
 };
 
 export default function RootLayout(props: LayoutProps<"/">) {
