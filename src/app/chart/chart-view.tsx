@@ -32,7 +32,7 @@ function PositionCard({
   return (
     <GlassCard glow="none" interactive className="mb-5">
       <details
-        className="group p-8"
+        className="group p-card"
         open={defaultOpen}
       >
         <summary className="flex cursor-pointer list-none items-center justify-between gap-6 [&::-webkit-details-marker]:hidden">
@@ -77,9 +77,9 @@ export function ChartPage() {
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-xl px-6 py-16 md:py-24">
+      <div className="mx-auto max-w-xl px-6 pt-16 pb-24 md:py-24">
         <GlassCard glow="lav">
-          <div className="flex flex-col items-center gap-5 px-8 py-14 text-center">
+          <div className="flex flex-col items-center gap-5 px-card py-10 text-center">
             <SparkleIcon className="h-8 w-8 text-lav-300" />
             <h1 className="display-zh text-2xl">你的星盘，还在等你</h1>
             <p className="max-w-sm text-sm leading-relaxed text-moon-400">
@@ -115,10 +115,10 @@ export function ChartPage() {
   ).slice(0, 5);
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
       {/* 星盘摘要 */}
       <GlassCard glow="lav" className="mb-10">
-        <div className="flex flex-col gap-8 p-8 md:p-10">
+        <div className="flex flex-col gap-8 p-card md:p-10">
           <div className="text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
               <SparkleIcon className="h-3 w-3" />
@@ -197,7 +197,7 @@ export function ChartPage() {
         />
       ) : (
         <GlassCard glow="none">
-          <div className="flex flex-col items-center gap-4 p-8 text-center">
+          <div className="flex flex-col items-center gap-4 p-card text-center">
             <AscIcon className="h-6 w-6 text-lav-300" />
             <h3 className="display-zh text-lg">上升星座 · 准确度有限</h3>
             <p className="max-w-md text-sm leading-relaxed text-moon-400">
@@ -213,7 +213,7 @@ export function ChartPage() {
       {/* 情绪与关系模式 */}
       <h2 className="mb-5 mt-10 text-sm tracking-[0.18em] text-moon-500">模式与主题</h2>
       <GlassCard glow="lav" className="mb-5">
-        <div className="flex flex-col gap-5 p-8">
+        <div className="flex flex-col gap-5 p-card">
           <div className="flex items-center gap-3">
             <MoonIcon className="h-5 w-5 text-moon-200" />
             <h3 className="display-zh text-lg">情绪模式</h3>
@@ -224,7 +224,7 @@ export function ChartPage() {
         </div>
       </GlassCard>
       <GlassCard glow="none" className="mb-5">
-        <div className="flex flex-col gap-5 p-8">
+        <div className="flex flex-col gap-5 p-card">
           <div className="flex items-center gap-3">
             <HeartIcon className="h-5 w-5 text-gold-300" />
             <h3 className="display-zh text-lg">关系模式</h3>
@@ -236,7 +236,7 @@ export function ChartPage() {
         </div>
       </GlassCard>
       <GlassCard glow="gold">
-        <div className="flex flex-col gap-5 p-8">
+        <div className="flex flex-col gap-5 p-card">
           <div className="flex items-center gap-3">
             <SparkleIcon className="h-5 w-5 text-gold-300" />
             <h3 className="display-zh text-lg">成长主题</h3>
