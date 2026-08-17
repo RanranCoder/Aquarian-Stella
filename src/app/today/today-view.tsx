@@ -58,9 +58,9 @@ export function TodayPage() {
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-xl px-6 py-16 md:py-24">
+      <div className="mx-auto max-w-xl px-6 pt-16 pb-24 md:py-24">
         <GlassCard glow="lav">
-          <div className="flex flex-col items-center gap-5 px-8 py-14 text-center">
+          <div className="flex flex-col items-center gap-5 px-card py-10 text-center">
             <SparkleIcon className="h-8 w-8 text-lav-300" />
             <h1 className="display-zh text-2xl">先认识你的星星</h1>
             <p className="max-w-sm text-sm leading-relaxed text-moon-400">
@@ -83,7 +83,7 @@ export function TodayPage() {
   const moonPhase = getMoonPhase(new Date(yy, mm - 1, dd, 12));
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
       {/* 顶部：日期切换 */}
       <div className="mb-10 flex flex-col items-center gap-5">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
@@ -122,7 +122,7 @@ export function TodayPage() {
 
       {/* 核心星语 */}
       <GlassCard glow="lav" className="mb-5">
-        <div className="flex flex-col gap-6 p-8 md:p-10">
+        <div className="flex flex-col gap-6 p-card md:p-10">
           <div className="flex items-center gap-2 text-gold-300">
             <SparkleIcon className="h-4 w-4" />
             <span className="text-sm tracking-wide">星语</span>
@@ -148,7 +148,7 @@ export function TodayPage() {
 
       {/* 今日维度 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="flex flex-col gap-5 p-8">
+        <div className="flex flex-col gap-5 p-card">
           <div className="flex items-center justify-between">
             <h2 className="text-sm tracking-[0.18em] text-moon-500">今日维度</h2>
             <span className="text-xs text-moon-500">分值仅作辅助参考</span>
@@ -169,7 +169,7 @@ export function TodayPage() {
 
       {/* 今日星象 */}
       <GlassCard glow="lav" className="mb-5">
-        <div className="flex flex-col gap-5 p-8">
+        <div className="flex flex-col gap-5 p-card">
           <h2 className="text-sm tracking-[0.18em] text-moon-500">今日星象</h2>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
@@ -197,7 +197,7 @@ export function TodayPage() {
 
       {/* 今日建议 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="grid gap-8 p-8 sm:grid-cols-2">
+        <div className="grid gap-8 p-card sm:grid-cols-2">
           <div>
             <h2 className="text-sm tracking-[0.18em] text-lav-300">
               今天适合
@@ -219,7 +219,7 @@ export function TodayPage() {
 
       {/* 反思问题 */}
       <GlassCard glow="gold">
-        <div className="flex flex-col items-center gap-5 p-8 text-center md:p-10">
+        <div className="flex flex-col items-center gap-5 p-card text-center md:p-10">
           <h2 className="text-sm tracking-[0.18em] text-gold-300">今晚的星星问你</h2>
           <p className="display-zh text-xl leading-relaxed md:text-2xl">
             {h?.theme.question}
