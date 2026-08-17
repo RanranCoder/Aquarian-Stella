@@ -105,7 +105,7 @@ export function SiteNav() {
 
       {/* 移动端 · 底部 Tab */}
       <nav className="fixed inset-x-0 bottom-0 z-40 md:hidden">
-        <div className="glass-strong mx-4 mb-4 flex items-stretch justify-between rounded-full px-2 py-1.5">
+        <div className="glass-strong mx-4 mb-[max(1rem,env(safe-area-inset-bottom))] flex items-stretch justify-between rounded-full px-2 py-1.5">
           {MOBILE_TABS.map((link) => {
             const active = isActive(pathname, link.href);
             const Icon = link.icon;
@@ -114,7 +114,7 @@ export function SiteNav() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex flex-1 flex-col items-center gap-0.5 rounded-full py-1.5 text-[11px] transition-colors duration-300",
+                  "flex flex-1 flex-col items-center gap-0.5 rounded-full py-1.5 min-h-11 text-[11px] transition-colors duration-300",
                   active
                     ? "bg-white/[0.08] text-gold-200"
                     : "text-moon-400",
@@ -129,7 +129,7 @@ export function SiteNav() {
       </nav>
 
       {/* 为固定导航预留间距 */}
-      <div className="h-16 md:h-20" aria-hidden="true" />
+      <div className="h-6 md:h-20" aria-hidden="true" />
     </>
   );
 }
