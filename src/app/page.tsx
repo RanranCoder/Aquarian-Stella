@@ -82,7 +82,7 @@ export default function HomePage() {
             className="md:col-span-2"
           >
             <Link href="/chart" className="block h-full">
-              <div className="flex h-full flex-col justify-between gap-10 p-8 md:p-10">
+              <div className="flex h-full flex-col justify-between gap-10 p-card md:p-10">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 text-lav-300">
                     <OrbitIcon className="h-6 w-6" />
@@ -104,7 +104,7 @@ export default function HomePage() {
                       太阳、月亮、上升，三个星位，三种看见自己的角度。
                     </p>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     {[
                       { s: "☉", t: "太阳", d: "你想成为谁" },
                       { s: "☽", t: "月亮", d: "你需要什么" },
@@ -112,11 +112,11 @@ export default function HomePage() {
                     ].map((x) => (
                       <div
                         key={x.t}
-                        className="flex flex-col items-center gap-1 rounded-2xl border border-hairline bg-white/[0.03] px-4 py-4"
+                        className="flex flex-col items-center gap-1 rounded-2xl border border-hairline bg-white/[0.03] px-2 py-3"
                       >
                         <span className="text-2xl text-gold-300">{x.s}</span>
                         <span className="text-sm text-moon-200">{x.t}</span>
-                        <span className="text-[11px] text-moon-500">{x.d}</span>
+                        <span className="text-xs text-moon-500">{x.d}</span>
                       </div>
                     ))}
                   </div>
@@ -128,7 +128,7 @@ export default function HomePage() {
           {/* 关系 · 高卡 */}
           <GlassCard interactive glow="gold" className="md:row-span-2">
             <Link href="/relationship" className="block h-full">
-              <div className="flex h-full flex-col justify-between gap-8 p-8">
+              <div className="flex h-full flex-col justify-between gap-8 p-card">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 text-gold-300">
                     <HeartIcon className="h-6 w-6" />
@@ -167,7 +167,7 @@ export default function HomePage() {
           {/* 星愿 */}
           <GlassCard interactive glow="lav">
             <Link href="/wishes" className="block h-full">
-              <div className="flex h-full flex-col justify-between gap-8 p-8">
+              <div className="flex h-full flex-col justify-between gap-8 p-card">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 text-lav-300">
                     <StarIcon className="h-6 w-6" />
@@ -192,7 +192,7 @@ export default function HomePage() {
           {/* 星语室 */}
           <GlassCard interactive glow="none">
             <Link href="/explore" className="block h-full">
-              <div className="flex h-full flex-col justify-between gap-8 p-8">
+              <div className="flex h-full flex-col justify-between gap-8 p-card">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 text-moon-300">
                     <ChatIcon className="h-6 w-6" />
@@ -240,9 +240,9 @@ export default function HomePage() {
       </section>
 
       {/* ===== 收尾 CTA ===== */}
-      <section className="mx-auto max-w-4xl px-6 py-16 md:py-24">
+      <section className="mx-auto max-w-4xl px-6 pt-16 pb-24 md:py-24">
         <GlassCard glow="gold">
-          <div className="flex flex-col items-center gap-6 px-8 py-14 text-center md:py-16">
+          <div className="flex flex-col items-center gap-6 px-card py-10 text-center md:py-14">
             <span className="animate-breathe text-3xl text-gold-300">✦</span>
             <h2 className="display-zh text-3xl md:text-4xl">
               准备好认识自己了吗？
