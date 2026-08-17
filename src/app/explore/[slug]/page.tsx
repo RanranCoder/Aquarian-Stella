@@ -39,10 +39,10 @@ export default async function ZodiacDetailPage({
   const friends = [ZODIACS[(idx + 2) % 12], ZODIACS[(idx + 4) % 12]];
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
       {/* 头部 */}
       <GlassCard glow="lav" className="mb-6">
-        <div className="flex flex-col items-center gap-5 p-8 text-center md:p-10">
+        <div className="flex flex-col items-center gap-5 p-card text-center md:p-10">
           <span className="text-6xl text-gold-300">{zodiac.symbol}</span>
           <div>
             <h1 className="display-zh text-4xl md:text-5xl">{zodiac.name}</h1>
@@ -78,7 +78,7 @@ export default async function ZodiacDetailPage({
 
       {/* 性格 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="flex flex-col gap-4 p-8">
+        <div className="flex flex-col gap-4 p-card">
           <h2 className="text-sm tracking-[0.18em] text-lav-300">性格</h2>
           <p className="leading-relaxed text-moon-300">{zodiac.personality}</p>
         </div>
@@ -86,7 +86,7 @@ export default async function ZodiacDetailPage({
 
       {/* 爱情 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="flex flex-col gap-4 p-8">
+        <div className="flex flex-col gap-4 p-card">
           <h2 className="text-sm tracking-[0.18em] text-moon-500">爱情</h2>
           <p className="leading-relaxed text-moon-300">{zodiac.love}</p>
         </div>
@@ -94,7 +94,7 @@ export default async function ZodiacDetailPage({
 
       {/* 事业 */}
       <GlassCard glow="none" className="mb-5">
-        <div className="flex flex-col gap-4 p-8">
+        <div className="flex flex-col gap-4 p-card">
           <h2 className="text-sm tracking-[0.18em] text-moon-500">事业</h2>
           <p className="leading-relaxed text-moon-300">{zodiac.career}</p>
         </div>
@@ -102,7 +102,7 @@ export default async function ZodiacDetailPage({
 
       {/* 今日星语 */}
       <GlassCard glow="gold" className="mb-5">
-        <div className="flex flex-col gap-4 p-8">
+        <div className="flex flex-col gap-4 p-card">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm tracking-[0.18em] text-gold-300">
               <SparkleIcon className="h-4 w-4" />
@@ -148,7 +148,7 @@ export default async function ZodiacDetailPage({
 
       {/* CTA */}
       <GlassCard glow="lav">
-        <div className="flex flex-col items-center gap-5 px-8 py-10 text-center">
+        <div className="flex flex-col items-center gap-5 px-card py-8 text-center">
           <p className="display-zh text-xl">
             想知道你的太阳、月亮和上升吗？
           </p>
