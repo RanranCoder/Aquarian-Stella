@@ -175,7 +175,7 @@ export function DatePicker({
                   type="button"
                   onClick={prevMonth}
                   aria-label="上个月"
-                  className="grid h-8 w-8 place-items-center rounded-lg text-moon-400 transition-colors hover:bg-white/[0.06] hover:text-moon-100"
+                  className="grid h-11 w-11 place-items-center rounded-lg text-moon-400 transition-colors hover:bg-white/[0.06] hover:text-moon-100"
                 >
                   <ChevronLeftIcon className="h-4 w-4" />
                 </button>
@@ -190,7 +190,7 @@ export function DatePicker({
                   type="button"
                   onClick={nextMonth}
                   aria-label="下个月"
-                  className="grid h-8 w-8 place-items-center rounded-lg text-moon-400 transition-colors hover:bg-white/[0.06] hover:text-moon-100"
+                  className="grid h-11 w-11 place-items-center rounded-lg text-moon-400 transition-colors hover:bg-white/[0.06] hover:text-moon-100"
                 >
                   <ChevronRightIcon className="h-4 w-4" />
                 </button>
@@ -256,7 +256,7 @@ export function DatePicker({
                   type="button"
                   onClick={() => setVy((y) => y - 12)}
                   aria-label="上一年代"
-                  className="grid h-8 w-8 place-items-center rounded-lg text-moon-400 transition-colors hover:bg-white/[0.06] hover:text-moon-100"
+                  className="grid h-11 w-11 place-items-center rounded-lg text-moon-400 transition-colors hover:bg-white/[0.06] hover:text-moon-100"
                 >
                   <ChevronLeftIcon className="h-4 w-4" />
                 </button>
@@ -271,7 +271,7 @@ export function DatePicker({
                   type="button"
                   onClick={() => setVy((y) => y + 12)}
                   aria-label="下一年代"
-                  className="grid h-8 w-8 place-items-center rounded-lg text-moon-400 transition-colors hover:bg-white/[0.06] hover:text-moon-100"
+                  className="grid h-11 w-11 place-items-center rounded-lg text-moon-400 transition-colors hover:bg-white/[0.06] hover:text-moon-100"
                 >
                   <ChevronRightIcon className="h-4 w-4" />
                 </button>

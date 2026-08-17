@@ -22,7 +22,7 @@ const VARIANTS = {
 } as const;
 
 const SIZES = {
-  sm: "px-4 py-2 text-sm gap-1.5",
+  sm: "px-4 py-2.5 min-h-11 text-sm gap-1.5",
   md: "px-6 py-3 text-[15px] gap-2",
   lg: "px-8 py-4 text-base gap-2.5",
 } as const;
