@@ -45,6 +45,9 @@
   --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular",
     "JetBrains Mono", monospace;
 
+  /* --- Spacing 流式间距（移动端收敛） --- */
+  --space-card: clamp(1.25rem, 5vw, 2rem);
+
   /* --- Radius 圆角体系（统一） --- */
   --radius-card: 1.25rem; /* 20px 卡片 */
   --radius-panel: 1.75rem; /* 28px 大面板 */
@@ -142,6 +145,13 @@
       opacity: 1;
     }
   }
+}
+
+@utility p-card {
+  padding: var(--space-card);
+}
+@utility px-card {
+  padding-inline: var(--space-card);
 }
 
 @layer base {
