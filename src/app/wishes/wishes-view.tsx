@@ -120,9 +120,9 @@ export function WishesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
       {/* 头部 */}
-      <div className="mb-8 flex items-end justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
             <SparkleIcon className="h-3 w-3" />
@@ -151,13 +151,13 @@ export function WishesPage() {
       {/* 新建 */}
       {showNew && (
         <GlassCard glow="gold" className="animate-fade-up mb-8">
-          <div className="flex flex-col gap-5 p-8">
+          <div className="flex flex-col gap-5 p-card">
             <div className="flex items-center justify-between">
               <h2 className="display-zh text-xl">写下一个愿望</h2>
               <button
                 onClick={() => setShowNew(false)}
                 aria-label="关闭"
-                className="grid h-8 w-8 place-items-center rounded-full border border-hairline text-moon-400 hover:text-moon-100"
+                className="grid h-11 w-11 place-items-center rounded-full border border-hairline text-moon-400 hover:text-moon-100"
               >
                 <CloseIcon className="h-4 w-4" />
               </button>
