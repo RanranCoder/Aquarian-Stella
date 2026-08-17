@@ -54,9 +54,9 @@ export function RelationshipPage() {
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-xl px-6 py-16 md:py-24">
+      <div className="mx-auto max-w-xl px-6 pt-16 pb-24 md:py-24">
         <GlassCard glow="lav">
-          <div className="flex flex-col items-center gap-5 px-8 py-14 text-center">
+          <div className="flex flex-col items-center gap-5 px-card py-10 text-center">
             <HeartIcon className="h-8 w-8 text-gold-300" />
             <h1 className="display-zh text-2xl">先认识自己，再遇见 TA</h1>
             <p className="max-w-sm text-sm leading-relaxed text-moon-400">
@@ -72,11 +72,11 @@ export function RelationshipPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
       {/* 输入 */}
       {!result && (
         <GlassCard glow="lav">
-          <div className="flex flex-col gap-8 p-8 md:p-10">
+          <div className="flex flex-col gap-8 p-card md:p-10">
             <div className="text-center">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-gold-300">
                 <HeartIcon className="h-3 w-3" />
@@ -132,7 +132,7 @@ export function RelationshipPage() {
         <>
           {/* 关系总览 */}
           <GlassCard glow="gold" className="mb-5">
-            <div className="flex flex-col items-center gap-6 p-8 text-center md:p-10">
+            <div className="flex flex-col items-center gap-6 p-card text-center md:p-10">
               <button
                 type="button"
                 onClick={() => setResult(null)}
@@ -172,7 +172,7 @@ export function RelationshipPage() {
 
           {/* 优势 */}
           <GlassCard glow="none" className="mb-5">
-            <div className="flex flex-col gap-5 p-8">
+            <div className="flex flex-col gap-5 p-card">
               <h2 className="flex items-center gap-2 text-sm tracking-[0.18em] text-lav-300">
                 <SparkleIcon className="h-4 w-4" />
                 容易被彼此吸引的地方
@@ -193,7 +193,7 @@ export function RelationshipPage() {
 
           {/* 挑战 */}
           <GlassCard glow="none" className="mb-5">
-            <div className="flex flex-col gap-5 p-8">
+            <div className="flex flex-col gap-5 p-card">
               <h2 className="flex items-center gap-2 text-sm tracking-[0.18em] text-moon-500">
                 <HeartIcon className="h-4 w-4" />
                 最容易产生误解的地方
@@ -215,7 +215,7 @@ export function RelationshipPage() {
           {/* 成长 + 建议 */}
           <div className="mb-5 grid gap-5 md:grid-cols-2">
             <GlassCard glow="lav">
-              <div className="flex flex-col gap-4 p-8">
+              <div className="flex flex-col gap-4 p-card">
                 <h2 className="text-sm tracking-[0.18em] text-lav-300">
                   这段关系可能带来的成长
                 </h2>
@@ -225,7 +225,7 @@ export function RelationshipPage() {
               </div>
             </GlassCard>
             <GlassCard glow="gold">
-              <div className="flex flex-col gap-4 p-8">
+              <div className="flex flex-col gap-4 p-card">
                 <h2 className="text-sm tracking-[0.18em] text-gold-300">
                   给你们的建议
                 </h2>
@@ -238,7 +238,7 @@ export function RelationshipPage() {
 
           {/* 分享卡 */}
           <GlassCard glow="gold">
-            <div className="flex flex-col gap-6 p-8">
+            <div className="flex flex-col gap-6 p-card">
               <ShareCardFrame id="share-relation">
                 <div className="text-center">
                   <p className="text-[13px] tracking-[0.28em] text-[#9B8EC4]">
@@ -291,7 +291,7 @@ export function RelationshipPage() {
           </GlassCard>
           {/* 星邮入口 */}
           <GlassCard glow="gold">
-            <div className="flex flex-col items-center gap-4 px-8 py-12 text-center">
+            <div className="flex flex-col items-center gap-4 px-card py-12 text-center">
               <p className="display-zh text-xl text-moon-200 md:text-2xl">
                 你和 Ta 的星星已经相遇。
               </p>
