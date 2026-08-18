@@ -40,7 +40,7 @@ export function MailPreview({
   return (
     <div className="flex w-full flex-col gap-6">
       {/* 信纸 */}
-      <div className="rounded-[1.5rem] bg-[#FFFDF6] px-6 py-8 text-[#1B2034] shadow-card-lg md:px-10 md:py-10">
+      <div className="rounded-[1.5rem] bg-[#FFFDF6] px-5 py-6 text-[#1B2034] shadow-card-lg md:px-8 md:py-8">
         <div className="flex flex-col items-center gap-1 text-center">
           <span className="text-lg text-[#B08D55]">✦</span>
           <p className="text-sm tracking-[0.24em] text-[#837D9C]">To: Ta</p>
@@ -58,12 +58,12 @@ export function MailPreview({
       </div>
 
       {/* 收件邮箱确认 */}
-      <label className="flex items-start gap-2.5 text-sm text-moon-300">
+      <label className="flex min-h-11 items-start gap-2.5 text-sm text-moon-300">
         <input
           type="checkbox"
           checked={confirmed}
           onChange={(e) => setConfirmed(e.target.checked)}
-          className="mt-0.5 h-4 w-4 accent-[#9B8EC4]"
+          className="mt-0.5 h-5 w-5 accent-[#9B8EC4]"
         />
         <span>
           我已确认收件邮箱 <span className="text-moon-100">{draft.recipient}</span> 准确无误

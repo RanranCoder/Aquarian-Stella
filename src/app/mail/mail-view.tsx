@@ -46,7 +46,7 @@ export function MailView() {
   }, []);
 
   return (
-    <div className="mx-auto flex min-h-[70dvh] w-full max-w-2xl flex-col items-center justify-center px-5 py-14 md:py-20">
+    <div className="mx-auto flex min-h-[70dvh] w-full max-w-2xl flex-col items-center justify-center px-5 pt-14 pb-24 md:py-20">
       {step === "intro" && <MailIntro onStart={() => setStep("compose")} />}
 
       {step === "compose" && (

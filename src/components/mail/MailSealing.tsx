@@ -95,7 +95,7 @@ export function MailSealing({
   }, [draft, turnstileToken]);
 
   return (
-    <div className="flex w-full flex-col items-center gap-8 py-10 text-center">
+    <div className="flex w-full flex-col items-center gap-8 py-6 text-center">
       <div className="seal-stage relative flex h-64 w-full max-w-xs flex-col items-center justify-center">
         {/* 信纸 */}
         <div className="seal-letter h-52 w-40 rounded-lg bg-[#FFFDF6] p-4 shadow-card-lg">

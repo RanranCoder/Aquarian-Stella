@@ -112,7 +112,7 @@ export function MailCompose({
 
   return (
     <GlassCard glow="none" className="w-full">
-      <div className="flex flex-col gap-7 p-7 md:p-9">
+      <div className="flex flex-col gap-7 p-5 md:p-7">
         <div className="text-center">
           <p className="text-sm tracking-[0.22em] text-gold-300">✦</p>
           <h1 className="display-zh mt-3 text-2xl">写封信给 Ta</h1>
@@ -131,7 +131,7 @@ export function MailCompose({
             placeholder="example@email.com"
             className={INPUT_CLASS}
           />
-          <p className="text-[11px] leading-relaxed text-moon-500">
+          <p className="text-xs leading-relaxed text-moon-500">
             请确认邮箱地址准确无误，Stella 会将这封信寄往这里。
           </p>
         </div>
@@ -170,7 +170,7 @@ export function MailCompose({
                 key={s}
                 type="button"
                 onClick={() => setTitle(s)}
-                className={`rounded-full border px-3 py-1.5 text-[12px] transition-colors ${
+                className={`rounded-full border px-3 py-2 min-h-9 text-sm transition-colors ${
                   title === s
                     ? "border-gold-400/70 bg-gold-400/10 text-gold-200"
                     : "border-hairline text-moon-400 hover:border-gold-400/50 hover:text-moon-200"
@@ -205,7 +205,7 @@ export function MailCompose({
               >
                 <span className="text-sm text-moon-100">{o.label}</span>
                 {o.hint && (
-                  <span className="mt-0.5 max-w-[16rem] truncate text-[11px] text-moon-500">{o.hint}</span>
+                  <span className="mt-0.5 max-w-[16rem] truncate text-xs text-moon-500">{o.hint}</span>
                 )}
               </button>
             ))}
@@ -234,20 +234,20 @@ export function MailCompose({
             placeholder="写下你一直想说，却还没有说出口的话……"
             className="w-full resize-y rounded-xl border border-hairline bg-white/[0.04] px-4 py-3 text-[15px] leading-relaxed text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
           />
-          <div className="text-right text-[11px] text-moon-500">{bodyLen} / 2000</div>
+          <div className="text-right text-xs text-moon-500">{bodyLen} / 2000</div>
         </div>
 
         {/* 定时发送 UI 占位 */}
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-hairline bg-white/[0.02] px-4 py-3">
           <span className="text-sm text-moon-300">发送时机</span>
-          <div className="inline-flex rounded-full border border-hairline p-0.5 text-[12px]">
+          <div className="inline-flex rounded-full border border-hairline p-0.5 text-sm">
             <span className="rounded-full bg-white/[0.06] px-3 py-1 text-moon-200">立即寄出</span>
             <span className="px-3 py-1 text-moon-500">定时寄出</span>
           </div>
           <button
             type="button"
             onClick={() => setError("定时发送即将上线，先帮你立即寄出。")}
-            className="ml-auto rounded-full border border-hairline px-2.5 py-1 text-[11px] text-moon-500 transition-colors hover:border-gold-400/50 hover:text-gold-300"
+            className="ml-auto rounded-full border border-hairline px-3 py-1.5 min-h-9 text-xs text-moon-500 transition-colors hover:border-gold-400/50 hover:text-gold-300"
           >
             即将上线
           </button>
