@@ -16,7 +16,7 @@ export function LoginView({ next }: { next: string }) {
   };
 
   return (
-    <div className="mx-auto max-w-md px-6 py-16 md:py-24">
+    <div className="mx-auto max-w-md px-6 pt-16 pb-24 md:py-24">
       <div className="mb-6 flex flex-col items-center gap-4 text-center">
         <Image
           src="/brand/logo-main.png"

@@ -22,7 +22,7 @@ const TOPICS = [
 
 export default function ExplorePage() {
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12 md:py-16">
+    <div className="mx-auto max-w-6xl px-6 pt-12 pb-24 md:py-16">
       <SectionHeading
         eyebrow="探索"
         title="先认识这颗星球"
