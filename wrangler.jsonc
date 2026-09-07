@@ -36,6 +36,6 @@
 		"AUTH_FROM_EMAIL": "Stella@mail.ranran.org.cn",
 		"STAR_MAIL_FROM_EMAIL": "Stella 星邮 <stella@mail.ranran.org.cn>",
 		"LLM_BASE_URL": "https://open.bigmodel.cn/api/paas/v4",
-		"LLM_MODEL": "glm-4.7-flash"
+		"LLM_MODEL": "glm-4-flash"
 	}
 }
