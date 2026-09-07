@@ -12,9 +12,9 @@ import {
 import type { BirthProfile } from "@/lib/astrology";
 
 const SURFACE_LIMITS: Record<string, number> = {
-  today: 1,
-  relation: 5,
-  personality: 1,
+  today: 3,
+  relation: 10,
+  personality: 3,
 };
 
 function todayDateStr(): string {
