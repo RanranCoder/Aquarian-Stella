@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
 
   let content: Record<string, unknown> | null = null;
 
+  let debugError: string | undefined;
   try {
     if (surface === "today") {
       const dateStr = typeof body.date === "string" ? body.date : todayDateStr();
@@ -87,7 +88,8 @@ export async function POST(request: NextRequest) {
       content = await generatePersonalityContent(env.DB, uid, profile, llmEnv);
     }
   } catch (err) {
-    console.error("[ai-content] generation error:", err instanceof Error ? err.message : err);
+    debugError = err instanceof Error ? err.message : String(err);
+    console.error("[ai-content] generation error:", debugError);
     content = null;
   }
 
@@ -96,5 +98,6 @@ export async function POST(request: NextRequest) {
     surface,
     content: content ?? null,
     source: content ? "ai" : "template",
+    ...(debugError ? { debugError } : {}),
   });
 }
