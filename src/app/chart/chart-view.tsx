@@ -1,16 +1,57 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/GlassCard";
 import { StarButton } from "@/components/StarButton";
-import { SparkleIcon, SunIcon, MoonIcon, AscIcon, HeartIcon } from "@/components/icons";
+import {
+  SparkleIcon,
+  SunIcon,
+  MoonIcon,
+  AscIcon,
+  HeartIcon,
+} from "@/components/icons";
 import { store, useMounted } from "@/lib/store";
 import {
   getSunSignFromDate,
   getMoonSign,
   getRisingSign,
+  birthMoment,
 } from "@/lib/astrology";
+import {
+  getAllPlanetPositions,
+  findAspects,
+  PLANET_NAMES,
+  PLANET_SYMBOLS,
+  type PlanetPosition,
+  type Aspect,
+} from "@/lib/astronomy";
+import { findCity } from "@/data/cities";
 import { cn } from "@/lib/utils";
-import type { Zodiac } from "@/data/zodiacs";
+import {
+  type Zodiac,
+  generatePersonalityProfile,
+  type PersonalityProfile,
+} from "@/data/zodiacs";
+
+type PersonalityContent = {
+  core: string;
+  emotion: string;
+  communication: string;
+  relationship: string;
+  action: string;
+  keywords: string[];
+};
+
+/* ── 辅助：从行星位置数组中提取星座 ── */
+
+function signFromPositions(
+  positions: PlanetPosition[],
+  key: string,
+): Zodiac | null {
+  return positions.find((p) => p.key === key)?.sign ?? null;
+}
+
+/* ── PositionCard：三主星可展开卡片 ── */
 
 function PositionCard({
   icon: Icon,
@@ -31,10 +72,7 @@ function PositionCard({
 }) {
   return (
     <GlassCard glow="none" interactive className="mb-5">
-      <details
-        className="group p-card"
-        open={defaultOpen}
-      >
+      <details className="group p-card" open={defaultOpen}>
         <summary className="flex cursor-pointer list-none items-center justify-between gap-6 [&::-webkit-details-marker]:hidden">
           <div className="flex items-center gap-4">
             <span className="grid h-12 w-12 place-items-center rounded-full border border-hairline bg-white/[0.04] text-gold-300">
@@ -70,10 +108,98 @@ function PositionCard({
   );
 }
 
+/* ── ProfileSection：人格分析面板 ── */
+
+function ProfileSection({
+  label,
+  icon,
+  text,
+  color,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  text: string;
+  color: string;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <span className={cn("h-5 w-5", color)}>{icon}</span>
+        <h4 className="text-sm tracking-[0.15em] text-moon-300">{label}</h4>
+      </div>
+      <p className="leading-relaxed text-moon-400">{text}</p>
+    </div>
+  );
+}
+
+/* ── PlanetRow：单颗行星位置行 ── */
+
+function PlanetRow({ p }: { p: PlanetPosition }) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-hairline bg-white/[0.02] px-4 py-3">
+      <div className="flex items-center gap-3">
+        <span className="text-lg text-moon-300">
+          {PLANET_SYMBOLS[p.key] ?? ""}
+        </span>
+        <span className="text-sm text-moon-300">
+          {PLANET_NAMES[p.key] ?? p.key}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-lav-200">
+          {p.sign.symbol} {p.sign.name}
+        </span>
+        <span className="text-xs text-moon-500">{p.degree}°</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── AspectRow：单条相位行 ── */
+
+function AspectRow({ a }: { a: Aspect }) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-hairline bg-white/[0.02] px-4 py-3">
+      <div className="flex items-center gap-2 text-sm text-moon-300">
+        <span>{PLANET_SYMBOLS[a.body1] ?? a.body1}</span>
+        <span>{PLANET_NAMES[a.body1]}</span>
+        <span className="text-lav-300">
+          {a.type.symbol} {a.type.nameCn}
+        </span>
+        <span>{PLANET_SYMBOLS[a.body2] ?? a.body2}</span>
+        <span>{PLANET_NAMES[a.body2]}</span>
+      </div>
+      <span className="text-xs text-moon-500">{a.exactAngle}°</span>
+    </div>
+  );
+}
+
+/* ── 主页面 ── */
+
 export function ChartPage() {
   const mounted = useMounted();
   const s = store.useStore();
   const profile = mounted ? s.profile : null;
+  const [aiPersonality, setAiPersonality] = useState<PersonalityContent | null>(null);
+
+  useEffect(() => {
+    if (!profile) return;
+    let cancelled = false;
+    fetch("/api/astrology/ai-content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ surface: "personality" }),
+      credentials: "include",
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data.content) {
+          setAiPersonality(data.content as PersonalityContent);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [profile?.birthDate, profile?.birthTime, profile?.birthCity]);
 
   if (!profile) {
     return (
@@ -98,25 +224,69 @@ export function ChartPage() {
   const moon = getMoonSign(profile);
   const rising = getRisingSign(profile);
 
+  /* 10 大行星位置 + 相位 */
+  const city = findCity(profile.birthCity);
+  const tz = city?.tz ?? 8;
+  const moment = birthMoment(profile, tz);
+  const allPositions = getAllPlanetPositions(moment);
+  const aspects = findAspects(allPositions);
+
+  /* 水星 / 金星 / 火星（从行星位置中提取） */
+  const mercurySign = signFromPositions(allPositions, "Mercury");
+  const venusSign = signFromPositions(allPositions, "Venus");
+  const marsSign = signFromPositions(allPositions, "Mars");
+
+  /* 人格分析 */
+  const personalityProfile: PersonalityProfile | null =
+    mercurySign && venusSign && marsSign
+      ? generatePersonalityProfile(sun, moon, rising, mercurySign, venusSign, marsSign)
+      : null;
+
   const core = [
-    { icon: SunIcon, label: "太阳", sign: sun, q: "你想成为谁", c: "text-gold-300" },
-    { icon: MoonIcon, label: "月亮", sign: moon, q: "你需要什么", c: "text-moon-200" },
+    {
+      icon: SunIcon,
+      label: "太阳",
+      sign: sun,
+      q: "你想成为谁",
+      c: "text-gold-300",
+    },
+    {
+      icon: MoonIcon,
+      label: "月亮",
+      sign: moon,
+      q: "你需要什么",
+      c: "text-moon-200",
+    },
     rising
-      ? { icon: AscIcon, label: "上升", sign: rising, q: "别人如何认识你", c: "text-lav-300" }
-      : { icon: AscIcon, label: "上升", sign: null as Zodiac | null, q: "补全时间与地点后可见", c: "text-lav-300" },
+      ? {
+          icon: AscIcon,
+          label: "上升",
+          sign: rising,
+          q: "别人如何认识你",
+          c: "text-lav-300",
+        }
+      : {
+          icon: AscIcon,
+          label: "上升",
+          sign: null as Zodiac | null,
+          q: "补全时间与地点后可见",
+          c: "text-lav-300",
+        },
   ];
 
-  const traits = Array.from(
-    new Set([
-      ...sun.keywords,
-      ...moon.keywords.slice(0, 1),
-      ...(rising ? rising.keywords.slice(0, 1) : []),
-    ]),
-  ).slice(0, 5);
+  const traits = personalityProfile
+    ? aiPersonality?.keywords ?? personalityProfile.keywords
+    : Array.from(
+        new Set([
+          ...sun.keywords,
+          ...moon.keywords.slice(0, 1),
+          ...(rising ? rising.keywords.slice(0, 1) : []),
+        ]),
+      ).slice(0, 5);
 
   return (
     <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
-      {/* 星盘摘要 */}
+      {/* ── 星盘摘要 ── */}
       <GlassCard glow="lav" className="mb-10">
         <div className="flex flex-col gap-8 p-card md:p-10">
           <div className="text-center">
@@ -152,7 +322,9 @@ export function ChartPage() {
 
           {/* 性格关键词 */}
           <div className="flex flex-col items-center gap-3">
-            <p className="text-xs tracking-[0.2em] text-moon-500">我的核心特质</p>
+            <p className="text-xs tracking-[0.2em] text-moon-500">
+              {personalityProfile ? "综合关键词" : "我的核心特质"}
+            </p>
             <div className="flex flex-wrap justify-center gap-2">
               {traits.map((t) => (
                 <span
@@ -167,8 +339,64 @@ export function ChartPage() {
         </div>
       </GlassCard>
 
-      {/* 三主星详情 */}
-      <h2 className="mb-5 text-sm tracking-[0.18em] text-moon-500">三主星详解</h2>
+      {/* ── 人格分析（基于六颗关键星） ── */}
+      {personalityProfile && (
+        <>
+          <h2 className="mb-5 text-sm tracking-[0.18em] text-moon-500">
+            人格全景
+          </h2>
+          <GlassCard glow="gold" className="mb-5">
+            <div className="flex flex-col gap-6 p-card">
+              <div className="flex items-center gap-3">
+                <SparkleIcon className="h-5 w-5 text-gold-300" />
+                <h3 className="display-zh text-lg">核心特质</h3>
+              </div>
+              <p className="leading-relaxed text-moon-400">
+                {aiPersonality?.core ?? personalityProfile.core}
+              </p>
+            </div>
+          </GlassCard>
+          <GlassCard glow="none" className="mb-5">
+            <div className="flex flex-col gap-6 p-card">
+              <ProfileSection
+                label="情绪模式"
+                icon={<MoonIcon className="h-5 w-5" />}
+                text={aiPersonality?.emotion ?? personalityProfile.emotion}
+                color="text-moon-200"
+              />
+              <div className="border-t border-hairline" />
+              <ProfileSection
+                label="沟通风格"
+                icon={<span className="text-sm">☿</span>}
+                text={aiPersonality?.communication ?? personalityProfile.communication}
+                color="text-lav-300"
+              />
+            </div>
+          </GlassCard>
+          <GlassCard glow="none" className="mb-5">
+            <div className="flex flex-col gap-6 p-card">
+              <ProfileSection
+                label="关系模式"
+                icon={<HeartIcon className="h-5 w-5" />}
+                text={aiPersonality?.relationship ?? personalityProfile.relationship}
+                color="text-gold-300"
+              />
+              <div className="border-t border-hairline" />
+              <ProfileSection
+                label="行动风格"
+                icon={<span className="text-sm">♂</span>}
+                text={aiPersonality?.action ?? personalityProfile.action}
+                color="text-gold-300"
+              />
+            </div>
+          </GlassCard>
+        </>
+      )}
+
+      {/* ── 三主星详解 ── */}
+      <h2 className="mb-5 mt-10 text-sm tracking-[0.18em] text-moon-500">
+        三主星详解
+      </h2>
       <PositionCard
         icon={SunIcon}
         label="太阳"
@@ -210,31 +438,100 @@ export function ChartPage() {
         </GlassCard>
       )}
 
-      {/* 情绪与关系模式 */}
-      <h2 className="mb-5 mt-10 text-sm tracking-[0.18em] text-moon-500">模式与主题</h2>
-      <GlassCard glow="lav" className="mb-5">
-        <div className="flex flex-col gap-5 p-card">
-          <div className="flex items-center gap-3">
-            <MoonIcon className="h-5 w-5 text-moon-200" />
-            <h3 className="display-zh text-lg">情绪模式</h3>
+      {/* ── 行星位置（可折叠） ── */}
+      <h2 className="mb-5 mt-10 text-sm tracking-[0.18em] text-moon-500">
+        行星位置
+      </h2>
+      <GlassCard glow="none" interactive className="mb-5">
+        <details className="group p-card">
+          <summary className="flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-3">
+              <span className="text-lg text-moon-300">♄</span>
+              <span className="display-zh text-lg">10 大行星落座</span>
+            </div>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-hairline text-moon-400 transition-transform duration-300 group-open:rotate-45">
+              +
+            </span>
+          </summary>
+          <div className="animate-fade-up mt-5 flex flex-col gap-2.5">
+            {allPositions.map((p) => (
+              <PlanetRow key={p.key} p={p} />
+            ))}
           </div>
-          <p className="leading-relaxed text-moon-400">
-            月亮落在{moon.name}，你的情绪底色是{moon.personality}
-          </p>
-        </div>
+        </details>
       </GlassCard>
-      <GlassCard glow="none" className="mb-5">
-        <div className="flex flex-col gap-5 p-card">
-          <div className="flex items-center gap-3">
-            <HeartIcon className="h-5 w-5 text-gold-300" />
-            <h3 className="display-zh text-lg">关系模式</h3>
+
+      {/* ── 主要相位（可折叠） ── */}
+      {aspects.length > 0 && (
+        <GlassCard glow="none" interactive className="mb-5">
+          <details className="group p-card">
+            <summary className="flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+              <div className="flex items-center gap-3">
+                <span className="text-lg text-lav-300">△</span>
+                <span className="display-zh text-lg">
+                  主要相位
+                  <span className="ml-2 text-sm text-moon-500">
+                    {aspects.length} 个
+                  </span>
+                </span>
+              </div>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-hairline text-moon-400 transition-transform duration-300 group-open:rotate-45">
+                +
+              </span>
+            </summary>
+            <div className="animate-fade-up mt-5 flex flex-col gap-2.5">
+              {aspects.map((a, i) => (
+                <AspectRow key={i} a={a} />
+              ))}
+            </div>
+          </details>
+        </GlassCard>
+      )}
+
+      {/* ── 模式与主题（成长主题保留） ── */}
+      <h2 className="mb-5 mt-10 text-sm tracking-[0.18em] text-moon-500">
+        模式与主题
+      </h2>
+
+      {/* 当没有完整人格分析时，显示简化版情绪/关系模式 */}
+      {!personalityProfile && (
+        <>
+          <GlassCard glow="lav" className="mb-5">
+            <div className="flex flex-col gap-5 p-card">
+              <div className="flex items-center gap-3">
+                <MoonIcon className="h-5 w-5 text-moon-200" />
+                <h3 className="display-zh text-lg">情绪模式</h3>
+              </div>
+              <p className="leading-relaxed text-moon-400">
+                月亮落在{moon.name}，你的情绪底色是{moon.personality}
+              </p>
+            </div>
+          </GlassCard>
+          <GlassCard glow="none" className="mb-5">
+            <div className="flex flex-col gap-5 p-card">
+              <div className="flex items-center gap-3">
+                <HeartIcon className="h-5 w-5 text-gold-300" />
+                <h3 className="display-zh text-lg">关系模式</h3>
+              </div>
+              <p className="leading-relaxed text-moon-400">{sun.love}</p>
+              <StarButton href="/relationship" variant="glass" size="sm" arrow>
+                看看和 TA 的关系
+              </StarButton>
+            </div>
+          </GlassCard>
+        </>
+      )}
+
+      {personalityProfile && (
+        <GlassCard glow="none" className="mb-5">
+          <div className="flex flex-col gap-5 p-card">
+            <StarButton href="/relationship" variant="glass" size="sm" arrow>
+              看看和 TA 的关系
+            </StarButton>
           </div>
-          <p className="leading-relaxed text-moon-400">{sun.love}</p>
-          <StarButton href="/relationship" variant="glass" size="sm" arrow>
-            看看和 TA 的关系
-          </StarButton>
-        </div>
-      </GlassCard>
+        </GlassCard>
+      )}
+
       <GlassCard glow="gold">
         <div className="flex flex-col gap-5 p-card">
           <div className="flex items-center gap-3">
@@ -242,7 +539,7 @@ export function ChartPage() {
             <h3 className="display-zh text-lg">成长主题</h3>
           </div>
           <p className="display-zh text-xl leading-relaxed text-moon-100">
-            “{sun.motto}”
+            &ldquo;{sun.motto}&rdquo;
           </p>
           <p className="leading-relaxed text-moon-400">{sun.todayHint}</p>
         </div>
