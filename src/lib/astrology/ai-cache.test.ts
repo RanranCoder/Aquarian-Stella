@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import type { D1Database } from "@cloudflare/workers-types";
 import { D1Mock } from "@/lib/auth/d1-mock-cache";
 import { getCachedContent, setCachedContent, invalidateAiCache } from "./ai-cache";
 
-function makeDb(): D1Mock {
-  return new D1Mock();
+function makeDb(): D1Database {
+  return new D1Mock() as unknown as D1Database;
 }
 
 describe("ai-cache", () => {
-  let db: D1Mock;
+  let db: D1Database;
   beforeEach(() => {
     db = makeDb();
   });
