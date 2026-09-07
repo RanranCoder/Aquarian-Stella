@@ -86,7 +86,8 @@ export async function POST(request: NextRequest) {
     } else if (surface === "personality") {
       content = await generatePersonalityContent(env.DB, uid, profile, llmEnv);
     }
-  } catch {
+  } catch (err) {
+    console.error("[ai-content] generation error:", err instanceof Error ? err.message : err);
     content = null;
   }
 

@@ -84,12 +84,18 @@ async function callLLM(env: LLMEnv, userPrompt: string): Promise<string | null> 
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error("[callLLM] non-ok response:", res.status, await res.text().catch(() => ""));
+      return null;
+    }
     const data = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
     };
-    return data.choices?.[0]?.message?.content ?? null;
-  } catch {
+    const content = data.choices?.[0]?.message?.content ?? null;
+    if (!content) console.error("[callLLM] empty content in response");
+    return content;
+  } catch (err) {
+    console.error("[callLLM] error:", err instanceof Error ? err.message : err);
     return null;
   }
 }
