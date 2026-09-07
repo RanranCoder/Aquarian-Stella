@@ -61,7 +61,13 @@ const TIMEOUT_MS = 10_000;
 
 async function callLLM(env: LLMEnv, userPrompt: string): Promise<string | null> {
   try {
-    const res = await fetch(`${env.LLM_BASE_URL}/v1/chat/completions`, {
+    // LLM_BASE_URL 应包含完整路径到 chat/completions
+    // 例：https://api.deepseek.com/v1 或 https://open.bigmodel.cn/api/paas/v4
+    const endpoint = env.LLM_BASE_URL.includes("/chat/completions")
+      ? env.LLM_BASE_URL
+      : `${env.LLM_BASE_URL}/chat/completions`;
+
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
