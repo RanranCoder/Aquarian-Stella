@@ -7,10 +7,9 @@ import {
   SYSTEM_PROMPT,
   todayCacheKey,
   relationCacheKey,
-  personalityCacheKey,
   todayExpiresAt,
 } from "./ai-content";
-import type { DailyAstrologyState, NatalChart, Aspect } from "./types";
+import type { DailyAstrologyState, NatalChart } from "./types";
 import type { BirthProfile } from "@/lib/astrology";
 
 // ── SYSTEM_PROMPT ──

@@ -7,6 +7,24 @@ export function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+export function buildStarMailText(opts: { title: string; body: string; signature: string; taName: string }): string {
+  const { title, body, signature, taName } = opts;
+  return [
+    "✦ 星语 · 星愿 · 星邮",
+    "",
+    title,
+    "",
+    `亲爱的 ${taName}：`,
+    "",
+    body,
+    "",
+    `—— ${signature}`,
+    "",
+    "有些话，写下来就已经很好了。",
+    "—— Stella",
+  ].join("\n");
+}
+
 export function buildStarMailHtml(opts: { title: string; body: string; signature: string; taName: string }): string {
   const title = escapeHtml(opts.title);
   const signature = escapeHtml(opts.signature);

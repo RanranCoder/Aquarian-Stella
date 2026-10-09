@@ -18,14 +18,13 @@ export class D1Mock extends MemoryD1 {
     // 拦截 ai_content_cache 相关 SQL
     if (sql.includes("ai_content_cache")) {
       let params: unknown[] = [];
-      const self = this;
       const binder = {
         bind(...args: unknown[]) {
           params = args;
           return this;
         },
-        run: () => self.runCache(sql, params),
-        first: <T>() => self.selectCacheFirst<T>(sql, params),
+        run: () => this.runCache(sql, params),
+        first: <T>() => this.selectCacheFirst<T>(sql, params),
         all: async <T>(): Promise<{ results: T[] }> => ({ results: [] }),
       };
       return binder;
@@ -41,11 +40,9 @@ export class D1Mock extends MemoryD1 {
       return Promise.resolve({ success: true, meta: { changes: 0, last_row_id: 0 } });
     }
 
-    const now = Date.now();
-
     // INSERT … ON CONFLICT DO UPDATE (upsert)
     if (_sql.includes("INSERT INTO ai_content_cache")) {
-      const [cacheKey, surface, userId, payload, _createdAt, expiresAt] = _params as [
+      const [cacheKey, surface, userId, payload, createdAt, expiresAt] = _params as [
         string,
         string,
         number,
@@ -53,7 +50,6 @@ export class D1Mock extends MemoryD1 {
         number,
         number,
       ];
-      const createdAt = now;
       this.cacheTable.set(cacheKey, {
         cache_key: cacheKey,
         surface,

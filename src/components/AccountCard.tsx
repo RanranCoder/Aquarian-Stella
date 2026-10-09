@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { GlassCard } from "@/components/GlassCard";
 import { Turnstile } from "@/components/Turnstile";
+import { notifyAuthChange } from "@/lib/use-auth";
 
 const INPUT_CLASS =
   "h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[15px] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400";
@@ -27,6 +28,9 @@ function errorText(e?: string): string {
 }
 
 export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
+  const emailId = useId();
+  const codeId = useId();
+  const errorId = useId();
   const [state, setState] = useState<AccountState>({ status: "loading" });
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -35,6 +39,15 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const emailInvalid = error === "请输入邮箱" || error === "邮箱格式不正确";
+  const codeInvalid = [
+    "请输入 6 位验证码",
+    "请先获取验证码",
+    "验证码已过期，请重新获取",
+    "验证码不正确",
+    "尝试次数过多，请重新获取验证码",
+    "请输入 6 位数字验证码",
+  ].includes(error);
 
   const refreshMe = useCallback(async () => {
     try {
@@ -119,6 +132,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
       }
       setCode("");
       await refreshMe();
+      notifyAuthChange();
       onAuthed?.();
     } catch {
       setError("登录失败，请稍后重试");
@@ -128,10 +142,18 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
   }
 
   async function handleLogout() {
+    setError("");
     setBusy(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      if (!res.ok) {
+        setError("退出登录失败，请稍后重试");
+        return;
+      }
       setState({ status: "anonymous" });
+      notifyAuthChange();
+    } catch {
+      setError("退出登录失败，请检查网络后重试");
     } finally {
       setBusy(false);
     }
@@ -149,7 +171,9 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
         {state.status === "authenticated" && (
           <div className="flex flex-col items-center gap-4">
             <p className="break-all text-[15px] text-moon-200">{state.email}</p>
+            {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
             <button
+              type="button"
               onClick={handleLogout}
               disabled={busy}
               className="flex min-h-11 items-center rounded-full border border-hairline px-5 py-2 text-sm text-moon-400 transition-colors hover:border-lav-400/50 hover:text-lav-300 disabled:opacity-50"
@@ -162,16 +186,23 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
         {state.status === "anonymous" && (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-3 md:flex-row">
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                placeholder="邮箱地址"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={INPUT_CLASS}
-              />
+              <div className="flex-1">
+                <label htmlFor={emailId} className="sr-only">邮箱地址</label>
+                <input
+                  id={emailId}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  aria-invalid={emailInvalid ? true : undefined}
+                  aria-describedby={emailInvalid ? errorId : undefined}
+                  placeholder="邮箱地址"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={INPUT_CLASS}
+                />
+              </div>
               <button
+                type="button"
                 onClick={handleSendCode}
                 disabled={busy || cooldown > 0}
                 className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-lav-400/15 px-5 text-sm text-lav-200 transition-colors hover:bg-lav-400/25 disabled:opacity-50"
@@ -183,16 +214,23 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
             <Turnstile key={turnstileKey} onToken={setTurnstileToken} className="min-h-[65px]" />
 
             <div className="flex flex-col gap-3 md:flex-row">
-              <input
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                placeholder="6 位验证码"
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                className={INPUT_CLASS}
-              />
+              <div className="flex-1">
+                <label htmlFor={codeId} className="sr-only">6 位验证码</label>
+                <input
+                  id={codeId}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  aria-invalid={codeInvalid ? true : undefined}
+                  aria-describedby={codeInvalid ? errorId : undefined}
+                  placeholder="6 位验证码"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className={INPUT_CLASS}
+                />
+              </div>
               <button
+                type="button"
                 onClick={handleVerify}
                 disabled={busy || !code}
                 className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-lav-300 to-lav-500 px-5 text-sm font-medium text-night-950 transition-opacity hover:opacity-90 disabled:opacity-40"
@@ -204,7 +242,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
             <p className="text-xs text-moon-500">
               未注册的邮箱将自动创建账号。验证码 10 分钟内有效。
             </p>
-            {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p id={errorId} role="alert" className="text-sm text-red-400">{error}</p>}
           </div>
         )}
       </div>

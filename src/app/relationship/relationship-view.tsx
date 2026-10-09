@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useCallback } from "react";
+import { useEffect, useId, useState } from "react";
 import { GlassCard } from "@/components/GlassCard";
 import { StarButton } from "@/components/StarButton";
 import { DatePicker } from "@/components/DatePicker";
@@ -18,14 +18,11 @@ import type { BirthProfile } from "@/lib/astrology";
 import { findCity } from "@/data/cities";
 import { ShareCardFrame } from "@/components/ShareCardFrame";
 import { SaveShareButton } from "@/components/SaveShareButton";
-
-type RelationContent = {
-  keywords: string[];
-  attraction: string[];
-  misunderstanding: string[];
-  growth: string;
-  advice: string;
-};
+import {
+  decodeSharedRelation,
+  encodeSharedRelation,
+  type RelationContent,
+} from "@/lib/relation-share";
 
 /** TA 出生日期范围 */
 const TA_MIN = "1930-01-01";
@@ -80,6 +77,8 @@ export function RelationshipPage() {
   const s = store.useStore();
   const profile = mounted ? s.profile : null;
   const optionalFieldsId = useId();
+  const nameInputId = useId();
+  const cityInputId = useId();
 
   const [name, setName] = useState("");
   const [taDate, setTaDate] = useState("");
@@ -89,6 +88,24 @@ export function RelationshipPage() {
   const [result, setResult] = useState<ReturnType<typeof getRelation> | null>(null);
   const [copied, setCopied] = useState(false);
   const [aiRelation, setAiRelation] = useState<RelationContent | null>(null);
+  const [sharedReport, setSharedReport] = useState(false);
+  const [shareError, setShareError] = useState("");
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.hash.slice(1)).get("relation");
+    if (!token) return;
+    const report = decodeSharedRelation(token);
+    if (report) {
+      /* eslint-disable react-hooks/set-state-in-effect -- hydrate a validated share payload from the URL fragment */
+      setName(report.name);
+      setResult(report.result);
+      setAiRelation(report.aiRelation ?? null);
+      setSharedReport(true);
+      /* eslint-enable react-hooks/set-state-in-effect */
+    } else {
+      setShareError("分享链接无效或已损坏。");
+    }
+  }, []);
 
   const canGenerate = taDate.length === 10;
 
@@ -121,20 +138,34 @@ export function RelationshipPage() {
 
   async function copyShare() {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      setShareError("");
+      if (!result) return;
+      const token = encodeSharedRelation({
+        name: name.trim() || "TA",
+        result,
+        ...(aiRelation ? { aiRelation } : {}),
+      });
+      const url = new URL(window.location.pathname, window.location.origin);
+      url.hash = new URLSearchParams({ relation: token }).toString();
+      await navigator.clipboard.writeText(url.toString());
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      // 忽略剪贴板不可用
+    } catch (error) {
+      setShareError(
+        error instanceof Error && error.message === "分享内容过大，无法生成链接"
+          ? error.message
+          : "复制失败，请检查浏览器剪贴板权限后重试。",
+      );
     }
   }
 
-  if (!profile) {
+  if (!profile && !sharedReport) {
     return (
       <div className="mx-auto max-w-xl px-6 pt-16 pb-24 md:py-24">
         <GlassCard glow="lav">
           <div className="flex flex-col items-center gap-5 px-card py-10 text-center">
             <HeartIcon className="h-8 w-8 text-gold-300" />
+            {shareError && <p role="alert" className="text-sm text-red-300">{shareError}</p>}
             <h1 className="display-zh text-2xl">先认识自己，再遇见 TA</h1>
             <p className="max-w-sm text-sm leading-relaxed text-moon-400">
               关系星图需要你的出生信息，才能计算你们之间的星星如何相遇。
@@ -148,18 +179,27 @@ export function RelationshipPage() {
     );
   }
 
-  const ownBirthData = summarizeBirthData(profile);
-  const taBirthData = summarizeBirthData({
-    nickname: name.trim() || "TA",
-    birthDate: taDate,
-    birthTime: taTime || undefined,
-    birthTimeAccuracy: taTime ? "exact" : "unknown",
-    birthCity: taCity.trim() || undefined,
-    interests: [],
-  });
+  const ownBirthData = profile
+    ? summarizeBirthData(profile)
+    : { summary: "分享星盘", time: "未公开", city: "未公开" };
+  const taBirthData = sharedReport
+    ? { summary: "分享星盘", time: "未公开", city: "未公开" }
+    : summarizeBirthData({
+        nickname: name.trim() || "TA",
+        birthDate: taDate,
+        birthTime: taTime || undefined,
+        birthTimeAccuracy: taTime ? "exact" : "unknown",
+        birthCity: taCity.trim() || undefined,
+        interests: [],
+      });
 
   return (
     <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
+      {shareError && (
+        <p role="status" className="mb-4 text-center text-sm text-red-300">
+          {shareError}
+        </p>
+      )}
       {/* 输入 */}
       {!result && (
         <GlassCard glow="lav">
@@ -179,12 +219,14 @@ export function RelationshipPage() {
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <label className="text-xs text-moon-500">TA 的称呼</label>
+                <label htmlFor={nameInputId} className="text-xs text-moon-500">TA 的称呼</label>
                 <input
+                  id={nameInputId}
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="比如 TA、你的名字"
+                  maxLength={40}
                   className="h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[15px] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
                 />
               </div>
@@ -229,8 +271,9 @@ export function RelationshipPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs text-moon-500">出生地</label>
+                  <label htmlFor={cityInputId} className="text-xs text-moon-500">出生地</label>
                   <input
+                    id={cityInputId}
                     type="text"
                     value={taCity}
                     onChange={(e) => setTaCity(e.target.value)}
@@ -263,7 +306,17 @@ export function RelationshipPage() {
             <div className="flex flex-col items-center gap-6 p-card text-center md:p-10">
               <button
                 type="button"
-                onClick={() => setResult(null)}
+                onClick={() => {
+                  setResult(null);
+                  setAiRelation(null);
+                  setSharedReport(false);
+                  setShareError("");
+                  window.history.replaceState(
+                    null,
+                    "",
+                    `${window.location.pathname}${window.location.search}`,
+                  );
+                }}
                 className="inline-flex items-center gap-1.5 self-start rounded-full border border-hairline px-3.5 py-1.5 text-xs text-moon-400 transition-colors hover:border-lav-400/60 hover:text-moon-100"
               >
                 <ChevronLeftIcon className="h-3.5 w-3.5" />

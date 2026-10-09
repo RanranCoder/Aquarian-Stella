@@ -28,6 +28,10 @@ export const ELEMENT_META: Record<
   water: { label: "水象", color: "text-lav-200" },
 };
 
+/**
+ * 星座数组——顺序必须严格按黄道排列，首尾相邻（摩羯→水瓶跨年边界）。
+ * getSunSign / signFromLon 依赖此顺序做区间判断，不可随意调整。
+ */
 export const ZODIACS: Zodiac[] = [
   {
     slug: "aries",
@@ -249,4 +253,91 @@ export const ZODIACS: Zodiac[] = [
 
 export function getZodiacBySlug(slug: string): Zodiac | undefined {
   return ZODIACS.find((z) => z.slug === slug);
+}
+
+/* ── 人格分析 Profile ── */
+
+export type PersonalityProfile = {
+  core: string;       // 核心特质
+  emotion: string;    // 情绪模式
+  communication: string; // 沟通风格
+  relationship: string;  // 关系模式
+  action: string;     // 行动风格
+  keywords: string[]; // 综合关键词
+};
+
+/** 沟通风格模板（按太阳星座元素） */
+const COMM_STYLE: Record<ElementKey, string> = {
+  fire: "你的表达直接而有力，善于激励他人。说话带着热情与感染力，有时会先说再想。",
+  earth: "你的表达务实而有条理，喜欢用事实和细节说话。不轻易许诺，但说到做到。",
+  air: "你的表达灵活而善于变通，擅长从多个角度看问题。你喜欢交流和思想碰撞。",
+  water: "你的表达细腻而善于共情，常能感知到话语背后的情绪。有时会用暗示代替直说。",
+};
+
+/** 行动风格模板（按火星星座元素） */
+const ACTION_STYLE: Record<ElementKey, string> = {
+  fire: "你做事冲动但高效，遇到目标会立刻行动。需要学会在冲刺前稍作停顿。",
+  earth: "你做事稳健而有计划，不打无准备之仗。有时需要提醒自己，不完美也可以开始。",
+  air: "你做事善于沟通协调，喜欢同时推进多件事。需要注意避免精力过于分散。",
+  water: "你做事跟随直觉，会在内心酝酿充分后才出手。情绪状态直接影响你的效率。",
+};
+
+/**
+ * 基于本命星盘六颗关键星体，生成综合人格分析。
+ * @param sun - 太阳星座
+ * @param moon - 月亮星座
+ * @param asc - 上升星座（可能为 null）
+ * @param mercury - 水星星座
+ * @param venus - 金星星座
+ * @param mars - 火星星座
+ */
+export function generatePersonalityProfile(
+  sun: Zodiac,
+  moon: Zodiac,
+  asc: Zodiac | null,
+  mercury: Zodiac,
+  venus: Zodiac,
+  mars: Zodiac,
+): PersonalityProfile {
+  // 核心特质：太阳 + 上升
+  const ascPart = asc
+    ? `外在呈现出${asc.elementLabel}的${asc.keywords[0]}特质，`
+    : "";
+  const core =
+    `你的内在驱力是${sun.keywords[0]}与${sun.keywords[1]}（${sun.elementLabel}·${sun.name}）。` +
+    `${ascPart}` +
+    `内心深处，你需要的是${moon.keywords[0]}与${moon.keywords[1]}（${moon.elementLabel}·${moon.name}）。`;
+
+  // 情绪模式：月亮
+  const emotion =
+    `月亮落在${moon.name}（${moon.elementLabel}），你的情绪底色是${moon.keywords[0]}与${moon.keywords[1]}。` +
+    `${moon.personality}`;
+
+  // 沟通风格：水星 + 元素
+  const commElement = COMM_STYLE[mercury.element];
+  const communication =
+    `水星落在${mercury.name}，你的思维方式偏向${mercury.keywords[0]}与${mercury.keywords[1]}。${commElement}`;
+
+  // 关系模式：金星
+  const relationship =
+    `金星落在${venus.name}，你在关系中追求${venus.keywords[0]}与${venus.keywords[1]}。${venus.love}`;
+
+  // 行动风格：火星 + 元素
+  const actElement = ACTION_STYLE[mars.element];
+  const action =
+    `火星落在${mars.name}，你的行动力源于${mars.keywords[0]}。${actElement}`;
+
+  // 综合关键词：合并六颗星的关键词，去重取前 8
+  const keywords = Array.from(
+    new Set([
+      ...sun.keywords,
+      ...moon.keywords,
+      ...(asc ? asc.keywords : []),
+      ...mercury.keywords.slice(0, 1),
+      ...venus.keywords.slice(0, 1),
+      ...mars.keywords.slice(0, 1),
+    ]),
+  ).slice(0, 8);
+
+  return { core, emotion, communication, relationship, action, keywords };
 }

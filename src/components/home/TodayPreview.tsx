@@ -12,11 +12,11 @@ import { localDateStr, formatDateCN } from "@/lib/format";
 export function TodayPreview() {
   const mounted = useMounted();
   const s = store.useStore();
-  const today = localDateStr();
+  const today = mounted ? localDateStr() : "";
 
   const profile = mounted ? s.profile : null;
   const h = profile
-    ? getDailyHoroscope(getSunSignFromDate(profile.birthDate), today)
+    ? getDailyHoroscope(getSunSignFromDate(profile.birthDate), today, profile)
     : null;
 
   return (
@@ -27,7 +27,9 @@ export function TodayPreview() {
             <SparkleIcon className="h-4 w-4" />
             <span className="text-sm tracking-wide">今日星语</span>
           </div>
-          <span className="text-sm text-moon-500">{formatDateCN(today)}</span>
+          <span className="text-sm text-moon-500">
+            {today ? formatDateCN(today) : "加载中…"}
+          </span>
         </div>
 
         {h ? (

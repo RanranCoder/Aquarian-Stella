@@ -180,10 +180,13 @@ export function ChartPage() {
   const mounted = useMounted();
   const s = store.useStore();
   const profile = mounted ? s.profile : null;
+  const birthDate = profile?.birthDate;
+  const birthTime = profile?.birthTime;
+  const birthCity = profile?.birthCity;
   const [aiPersonality, setAiPersonality] = useState<PersonalityContent | null>(null);
 
   useEffect(() => {
-    if (!profile) return;
+    if (!birthDate) return;
     let cancelled = false;
     fetch("/api/astrology/ai-content", {
       method: "POST",
@@ -199,7 +202,7 @@ export function ChartPage() {
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [profile?.birthDate, profile?.birthTime, profile?.birthCity]);
+  }, [birthDate, birthTime, birthCity]);
 
   if (!profile) {
     return (

@@ -2,12 +2,13 @@ import { describe, it, expect } from "vitest";
 import { SearchRiseSet, SunPosition, Body, Observer } from "astronomy-engine";
 import {
   getSunSign,
+  getSunSignFromDate,
   getMoonSign,
   getRisingSign,
   type BirthProfile,
 } from "@/lib/astrology";
 import { ascendantEclipticLon, moonEclipticLon } from "@/lib/astronomy";
-import { THEMES, getDailyHoroscope } from "@/lib/daily";
+import { THEME_CONTENT, getDailyHoroscope } from "@/lib/daily";
 import { ZODIACS } from "@/data/zodiacs";
 import { checkGeneratedText } from "@/lib/trust";
 
@@ -92,7 +93,7 @@ function getSunSignFromProfile(p: BirthProfile) {
 
 describe("内容合规：今日星语全部主题 + 十二星座文案通过 AI 限制检测", () => {
   it("全部 THEMES 文案无宿命论/恐慌/伪科学", () => {
-    const texts = THEMES.flatMap((t) => [
+    const texts = THEME_CONTENT.flatMap((t) => [
       t.core,
       t.expand,
       t.actions.yes,
@@ -131,5 +132,44 @@ describe("内容合规：今日星语全部主题 + 十二星座文案通过 AI 
         }
       }
     }
+  });
+});
+
+describe("太阳星座跨年边界守护", () => {
+  it("12/21 → 射手座", () => {
+    expect(getSunSign(12, 21).slug).toBe("sagittarius");
+  });
+  it("12/22 → 摩羯座", () => {
+    expect(getSunSign(12, 22).slug).toBe("capricorn");
+  });
+  it("1/19 → 摩羯座", () => {
+    expect(getSunSign(1, 19).slug).toBe("capricorn");
+  });
+  it("1/20 → 水瓶座", () => {
+    expect(getSunSign(1, 20).slug).toBe("aquarius");
+  });
+  it("2/18 → 水瓶座", () => {
+    expect(getSunSign(2, 18).slug).toBe("aquarius");
+  });
+  it("2/19 → 双鱼座", () => {
+    expect(getSunSign(2, 19).slug).toBe("pisces");
+  });
+});
+
+describe("getSunSignFromDate（日期字符串接口）", () => {
+  it("跨年：2025-12-22 → 摩羯座", () => {
+    expect(getSunSignFromDate("2025-12-22").slug).toBe("capricorn");
+  });
+  it("跨年：2026-01-19 → 摩羯座", () => {
+    expect(getSunSignFromDate("2026-01-19").slug).toBe("capricorn");
+  });
+  it("跨年：2026-01-20 → 水瓶座", () => {
+    expect(getSunSignFromDate("2026-01-20").slug).toBe("aquarius");
+  });
+  it("年中：2026-07-22 → 巨蟹座", () => {
+    expect(getSunSignFromDate("2026-07-22").slug).toBe("cancer");
+  });
+  it("年中：2026-07-23 → 狮子座", () => {
+    expect(getSunSignFromDate("2026-07-23").slug).toBe("leo");
   });
 });

@@ -28,4 +28,21 @@ describe("checkModeration", () => {
     const body = Array.from({ length: 4 }, () => "想你").join("\n");
     expect(checkModeration({ ...base, body })).toEqual({ allowed: true });
   });
+
+  it("strips HTML tags before keyword detection", () => {
+    expect(checkModeration({ ...base, body: '<b>加微信</b>' })).toEqual({ allowed: false, reason: "SPAM_KEYWORD" });
+  });
+  it("strips HTML tags before URL counting", () => {
+    const body = '<a href="https://a.com/1">link</a> <a href="https://b.com/2">link</a> <a href="https://c.com/3">link</a>';
+    expect(checkModeration({ ...base, body })).toEqual({ allowed: true });
+  });
+  it("strips invisible Unicode characters before keyword detection", () => {
+    expect(checkModeration({ ...base, body: '加\u200B微信' })).toEqual({ allowed: false, reason: "SPAM_KEYWORD" });
+  });
+  it("strips zero-width joiner before keyword detection", () => {
+    expect(checkModeration({ ...base, body: '兼\u200D职' })).toEqual({ allowed: false, reason: "SPAM_KEYWORD" });
+  });
+  it("handles HTML + invisible chars combined bypass attempt", () => {
+    expect(checkModeration({ ...base, body: '<span>加\u200B微\u200B信</span>' })).toEqual({ allowed: false, reason: "SPAM_KEYWORD" });
+  });
 });

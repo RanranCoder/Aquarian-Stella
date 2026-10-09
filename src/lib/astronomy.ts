@@ -4,6 +4,10 @@ import {
   Horizon,
   Observer,
   MoonPhase,
+  GeoVector,
+  Ecliptic,
+  SunPosition,
+  Body,
 } from "astronomy-engine";
 import { ZODIACS, type Zodiac } from "@/data/zodiacs";
 
@@ -33,12 +37,18 @@ export function moonEclipticLon(date: Date): number {
   return EclipticGeoMoon(MakeTime(date)).lon;
 }
 
+
+/** 上升星座计算缓存（按分钟粒度，同一分钟内变化 < 0.004 度） */
+const _ascendantCache = new Map<string, number | null>();
 /** 上升点黄经（东地平线交点），无法计算时返回 null */
 export function ascendantEclipticLon(
   date: Date,
   lat: number,
   lon: number,
 ): number | null {
+  const _key = `${Math.floor(date.getTime() / 60000)}:${lat.toFixed(2)}:${lon.toFixed(2)}`;
+  if (_ascendantCache.has(_key)) return _ascendantCache.get(_key)!;
+
   const observer = new Observer(lat, lon, 0);
   let prev = eclipticAltAz(date, observer, 0);
   const crossings: { lon: number; az: number }[] = [];
@@ -65,7 +75,9 @@ export function ascendantEclipticLon(
     prev = cur;
   }
   const east = crossings.find((c) => c.az > 0 && c.az < 180);
-  return east ? east.lon : null;
+  const result = east ? east.lon : null;
+  _ascendantCache.set(_key, result);
+  return result;
 }
 
 /** 黄经（度）→ 星座 */
@@ -89,4 +101,131 @@ export function getMoonPhase(date: Date): MoonPhaseInfo {
   else if (n < 292.5) label = "下弦月";
   else label = "残月";
   return { angle: Math.round(n), label };
+}
+
+/* ── 行星黄经计算 ── */
+
+/** 行星 key → astronomy-engine Body 映射 */
+const PLANET_BODY: Record<string, Body> = {
+  Sun: Body.Sun,
+  Moon: Body.Moon,
+  Mercury: Body.Mercury,
+  Venus: Body.Venus,
+  Mars: Body.Mars,
+  Jupiter: Body.Jupiter,
+  Saturn: Body.Saturn,
+  Uranus: Body.Uranus,
+  Neptune: Body.Neptune,
+  Pluto: Body.Pluto,
+};
+
+/** 行星中文名 */
+export const PLANET_NAMES: Record<string, string> = {
+  Sun: "太阳",
+  Moon: "月亮",
+  Mercury: "水星",
+  Venus: "金星",
+  Mars: "火星",
+  Jupiter: "木星",
+  Saturn: "土星",
+  Uranus: "天王星",
+  Neptune: "海王星",
+  Pluto: "冥王星",
+};
+
+/** 行星符号 */
+export const PLANET_SYMBOLS: Record<string, string> = {
+  Sun: "☉",
+  Moon: "☽",
+  Mercury: "☿",
+  Venus: "♀",
+  Mars: "♂",
+  Jupiter: "♃",
+  Saturn: "♄",
+  Uranus: "♅",
+  Neptune: "♆",
+  Pluto: "♇",
+};
+
+export type PlanetPosition = {
+  key: string;
+  lon: number;
+  sign: Zodiac;
+  degree: number; // 星座内度数（0-29）
+};
+
+/** 计算单颗行星的地心黄经（度） */
+function planetEclipticLon(body: Body, date: Date): number {
+  if (body === Body.Sun) {
+    return SunPosition(MakeTime(date)).elon;
+  }
+  if (body === Body.Moon) {
+    return EclipticGeoMoon(MakeTime(date)).lon;
+  }
+  const vec = GeoVector(body, MakeTime(date), true);
+  const ecl = Ecliptic(vec);
+  return ecl.elon;
+}
+
+/** 计算全部 10 大行星的位置 */
+export function getAllPlanetPositions(date: Date): PlanetPosition[] {
+  return Object.entries(PLANET_BODY).map(([key, body]) => {
+    const lon = planetEclipticLon(body, date);
+    const n = ((lon % 360) + 360) % 360;
+    const sign = ZODIACS[Math.floor(n / 30)];
+    return { key, lon: n, sign, degree: Math.floor(n % 30) };
+  });
+}
+
+/* ── 相位计算 ── */
+
+export type AspectType = {
+  name: string;
+  nameCn: string;
+  symbol: string;
+  angle: number;
+  orb: number; // 允许误差
+};
+
+export const ASPECT_TYPES: AspectType[] = [
+  { name: "conjunction", nameCn: "合相", symbol: "☌", angle: 0, orb: 8 },
+  { name: "sextile", nameCn: "六分", symbol: "⚹", angle: 60, orb: 6 },
+  { name: "square", nameCn: "四分", symbol: "□", angle: 90, orb: 7 },
+  { name: "trine", nameCn: "三分", symbol: "△", angle: 120, orb: 8 },
+  { name: "opposition", nameCn: "对冲", symbol: "☍", angle: 180, orb: 8 },
+];
+
+export type Aspect = {
+  body1: string;
+  body2: string;
+  type: AspectType;
+  exactAngle: number;
+};
+
+/** 计算两个黄经之间的最短角度差 */
+function angleDiff(a: number, b: number): number {
+  const d = Math.abs(a - b) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+/** 检测所有行星之间的主要相位 */
+export function findAspects(positions: PlanetPosition[]): Aspect[] {
+  const aspects: Aspect[] = [];
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const diff = angleDiff(positions[i].lon, positions[j].lon);
+      for (const type of ASPECT_TYPES) {
+        if (Math.abs(diff - type.angle) <= type.orb) {
+          aspects.push({
+            body1: positions[i].key,
+            body2: positions[j].key,
+            type,
+            exactAngle: Math.round(diff * 10) / 10,
+          });
+          break; // 每对行星只取最近的一个相位
+        }
+      }
+    }
+  }
+  return aspects;
 }

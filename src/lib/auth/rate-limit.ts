@@ -25,7 +25,7 @@ async function ensureWindow(db: D1Database, key: string, windowEnd: number): Pro
 async function resetExpired(db: D1Database, key: string, windowEnd: number, now: number): Promise<void> {
   await db
     .prepare("UPDATE rate_limits SET count = 0, window_end = ? WHERE key = ? AND window_end < ?")
-    .bind(key, windowEnd, now)
+    .bind(windowEnd, now, key)
     .run();
 }
 
@@ -56,6 +56,22 @@ export async function claimRate(db: D1Database, email: string, ip: string): Prom
   const emailOk = await claimSlot(db, `otp:rate:${email}`, RATE_EMAIL_PER_HOUR, windowEnd, now);
   if (!emailOk) return { allowed: false, retryAfterSec: RATE_HOUR_SEC };
   const ipOk = await claimSlot(db, `otp:rate:${ip}`, RATE_IP_PER_HOUR, windowEnd, now);
+  if (!ipOk) return { allowed: false, retryAfterSec: RATE_HOUR_SEC };
+  return { allowed: true };
+}
+
+/** 密码登录限流：独立 key 前缀（login:rate），邮箱 + IP 各自计次到 max。 */
+export async function claimAccountRate(
+  db: D1Database,
+  email: string,
+  ip: string,
+  max: number,
+): Promise<RateLimitResult> {
+  const now = Date.now();
+  const windowEnd = now + RATE_HOUR_SEC * 1000;
+  const emailOk = await claimSlot(db, `login:rate:${email}`, max, windowEnd, now);
+  if (!emailOk) return { allowed: false, retryAfterSec: RATE_HOUR_SEC };
+  const ipOk = await claimSlot(db, `login:rate:${ip}`, max, windowEnd, now);
   if (!ipOk) return { allowed: false, retryAfterSec: RATE_HOUR_SEC };
   return { allowed: true };
 }

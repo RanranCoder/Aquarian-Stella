@@ -8,7 +8,6 @@ import { StarButton } from "@/components/StarButton";
 import {
   ShieldIcon,
   SettingsIcon,
-  EditIcon,
   CheckIcon,
   SparkleIcon,
 } from "@/components/icons";
@@ -33,18 +32,53 @@ export function ProfilePage() {
   const auth = useAuth();
   const profile = mounted ? s.profile : null;
 
-  const [confirmClear, setConfirmClear] = useState(false);
-  const [cleared, setCleared] = useState(false);
+  const [confirmLocal, setConfirmLocal] = useState(false);
+  const [confirmCloud, setConfirmCloud] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [cleaned, setCleaned] = useState<"local" | "cloud" | null>(null);
+  const [dataError, setDataError] = useState("");
   const motionOn = motionPref.useValue();
 
   function toggleMotion() {
     motionPref.set(!motionOn);
   }
 
-  function clearAll() {
-    store.set(() => ({ onboarded: false, profile: null, wishes: [] }));
-    setCleared(true);
-    window.setTimeout(() => setCleared(false), 1800);
+  function clearLocal() {
+    // 清本机：store + 星邮草稿 + 动效偏好 + 同步元信息
+    store.set(() => ({
+      onboarded: false,
+      profile: null,
+      wishes: [],
+      ownerUid: undefined,
+      profileUpdatedAt: undefined,
+      pendingDeletes: [],
+      lastPushedAt: undefined,
+    }));
+    try {
+      window.localStorage.removeItem("xingyu-starmail-draft");
+    } catch {
+      // 忽略
+    }
+    setCleaned("local");
+    window.setTimeout(() => setCleaned(null), 1800);
+  }
+
+  async function clearCloud() {
+    setDataError("");
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/data/clear", { method: "POST" });
+      if (!res.ok) {
+        setDataError("云端数据清除失败，请稍后重试。");
+        return;
+      }
+      clearLocal();
+      setCleaned("cloud");
+    } catch {
+      setDataError("无法连接服务器，请检查网络后重试。");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const sun = profile ? getSunSignFromDate(profile.birthDate) : null;
@@ -86,7 +120,9 @@ export function ProfilePage() {
         </span>
       </div>
 
-      <AccountCard />
+      <div className="mt-8">
+        <AccountCard />
+      </div>
 
       {/* 资料卡 */}
       <GlassCard glow="lav" className="mt-6 mb-5">
@@ -120,7 +156,6 @@ export function ProfilePage() {
                 size="sm"
                 arrow={false}
               >
-                <EditIcon className="h-4 w-4" />
                 修改资料
               </StarButton>
             </div>
@@ -203,7 +238,7 @@ export function ProfilePage() {
             隐私
           </h2>
           <p className="leading-relaxed text-moon-400">
-            你的账号信息（邮箱）存储于服务器；出生资料与星愿仍只保存在这台设备的浏览器里。
+            登录后，你的出生资料与星愿会保存到你的账号下，换设备登录即可找回；未登录时仅保存在这台设备。
           </p>
         </div>
       </GlassCard>
@@ -223,6 +258,7 @@ export function ProfilePage() {
             <button
               onClick={toggleMotion}
               aria-label="切换动效"
+              aria-pressed={motionOn}
               className={cn(
                 "relative h-11 w-16 rounded-full border transition-colors duration-300",
                 motionOn ? "border-lav-400 bg-lav-400/30" : "border-hairline bg-white/[0.05]",
@@ -239,50 +275,100 @@ export function ProfilePage() {
         </div>
       </GlassCard>
 
-      {/* 清除数据 */}
+      {/* 数据管理 */}
       <GlassCard glow="none">
         <div className="p-card">
           <h2 className="mb-4 text-sm tracking-[0.18em] text-moon-500">
             数据管理
           </h2>
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-center text-sm text-moon-500">
-              清除后，出生资料与星愿将永久从这台设备删除。
-            </p>
-            {confirmClear ? (
-              <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-6">
+            {/* 清本机 */}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-moon-500">
+                清除本机数据：删除这台设备上的出生资料、星愿与草稿。登录状态下云端保留，之后仍可恢复。
+              </p>
+              {confirmLocal ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={clearLocal}
+                    className={cn(
+                      "inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-2 text-sm transition-colors",
+                      cleaned
+                        ? "bg-lav-400/20 text-lav-200"
+                        : "border border-red-400/50 text-red-300 hover:bg-red-400/10",
+                    )}
+                  >
+                    {cleaned ? (
+                      <>
+                        <CheckIcon className="h-4 w-4" />
+                        已清除
+                      </>
+                    ) : (
+                      "确认清除本机"
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setConfirmLocal(false)}
+                    className="flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm text-moon-400"
+                  >
+                    取消
+                  </button>
+                </div>
+              ) : (
                 <button
-                  onClick={clearAll}
-                  className={cn(
-                    "inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-2 text-sm transition-colors",
-                    cleared
-                      ? "bg-lav-400/20 text-lav-200"
-                      : "border border-red-400/50 text-red-300 hover:bg-red-400/10",
-                  )}
+                  onClick={() => setConfirmLocal(true)}
+                  className="flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm text-moon-400 transition-colors hover:border-red-400/50 hover:text-red-300"
                 >
-                  {cleared ? (
-                    <>
-                      <CheckIcon className="h-4 w-4" />
-                      已清除
-                    </>
-                  ) : (
-                    "确认清除"
-                  )}
+                  清除本机数据
                 </button>
-                <button
-                  onClick={() => setConfirmClear(false)}
-                  className="flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm text-moon-400"
-                >
-                  取消
-                </button>
+              )}
+            </div>
+
+            {/* 清云端 */}
+            {auth.status === "authenticated" && (
+              <div className="flex flex-col gap-2 border-t border-white/[0.05] pt-5">
+                <p className="text-sm text-moon-500">
+                  清除云端数据：删除账号下的出生资料与星愿（保留账号与邮箱）。此操作无法撤销。
+                </p>
+                {confirmCloud ? (
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={clearCloud}
+                      disabled={busy}
+                      className={cn(
+                        "inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-2 text-sm transition-colors",
+                        cleaned === "cloud"
+                          ? "bg-lav-400/20 text-lav-200"
+                          : "border border-red-400/50 text-red-300 hover:bg-red-400/10",
+                      )}
+                    >
+                      {cleaned === "cloud" ? (
+                        <>
+                          <CheckIcon className="h-4 w-4" />
+                          已清除云端
+                        </>
+                      ) : (
+                        "确认清除云端"
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setConfirmCloud(false)}
+                      className="flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm text-moon-400"
+                    >
+                      取消
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmCloud(true)}
+                    disabled={busy}
+                    className="flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm text-moon-400 transition-colors hover:border-red-400/50 hover:text-red-300 disabled:opacity-50"
+                  >
+                    清除云端数据
+                  </button>
+                )}
+                {dataError && <p role="alert" className="text-sm text-red-300">{dataError}</p>}
               </div>
-            ) : (
-              <button
-                onClick={() => setConfirmClear(true)}
-                className="flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm text-moon-400 transition-colors hover:border-red-400/50 hover:text-red-300"
-              >
-                清除所有数据
-              </button>
             )}
           </div>
         </div>

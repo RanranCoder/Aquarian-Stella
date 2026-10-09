@@ -11,7 +11,8 @@ import {
   CloseIcon,
 } from "@/components/icons";
 import { store, useMounted, newId, WISH_CATEGORY, type Wish } from "@/lib/store";
-import { formatDateDot } from "@/lib/format";
+import { pushNow } from "@/lib/sync";
+import { formatDateDot, localDateStr } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const FILTERS: { key: Wish["status"] | "all"; label: string }[] = [
@@ -35,6 +36,7 @@ export function WishesPage() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<Wish["category"]>("growth");
   const [undo, setUndo] = useState<Wish | null>(null);
+  const [statusMessage, setStatusMessage] = useState("");
   const undoTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -67,6 +69,13 @@ export function WishesPage() {
 
   const activeCount = wishes.filter((w) => w.status === "active").length;
 
+  // 防抖推送：500ms 内的多次变更合并为一次请求
+  const pushTimer = useRef<number | null>(null);
+  function debouncedPush() {
+    if (pushTimer.current) window.clearTimeout(pushTimer.current);
+    pushTimer.current = window.setTimeout(() => { pushNow(); }, 500);
+  }
+
   function addWish() {
     const t = title.trim();
     if (!t) return;
@@ -75,11 +84,13 @@ export function WishesPage() {
       title: t,
       category,
       status: "active",
-      createdAt: new Date().toISOString().slice(0, 10),
+      createdAt: localDateStr(),
+      updatedAt: new Date().getTime(),
     };
     store.set((prev) => ({ ...prev, wishes: [wish, ...prev.wishes] }));
     setTitle("");
     setShowNew(false);
+    debouncedPush();
   }
 
   function updateWish(id: string, patch: Partial<Wish>) {
@@ -90,14 +101,16 @@ export function WishesPage() {
           ? {
               ...w,
               ...patch,
+              updatedAt: new Date().getTime(),
               completedAt:
                 patch.status === "done" && !w.completedAt
-                  ? new Date().toISOString().slice(0, 10)
+                  ? localDateStr()
                   : w.completedAt,
             }
           : w,
       ),
     }));
+    debouncedPush();
   }
 
   function removeWish(id: string) {
@@ -106,21 +119,36 @@ export function WishesPage() {
     store.set((prev) => ({
       ...prev,
       wishes: prev.wishes.filter((w) => w.id !== id),
+      pendingDeletes: [...prev.pendingDeletes, id],
     }));
     setUndo(target);
+    setStatusMessage(`已删除“${target.title}”，可在 6 秒内撤销。`);
     if (undoTimer.current) window.clearTimeout(undoTimer.current);
-    undoTimer.current = window.setTimeout(() => setUndo(null), 6000);
+    undoTimer.current = window.setTimeout(() => {
+      setUndo(null);
+      setStatusMessage("");
+    }, 6000);
+    debouncedPush();
   }
 
   function undoDelete() {
     if (!undo) return;
-    store.set((prev) => ({ ...prev, wishes: [undo, ...prev.wishes] }));
+    store.set((prev) => ({
+      ...prev,
+      wishes: [undo, ...prev.wishes],
+      pendingDeletes: prev.pendingDeletes.filter((id) => id !== undo.id),
+    }));
+    setStatusMessage(`已恢复“${undo.title}”。`);
     setUndo(null);
     if (undoTimer.current) window.clearTimeout(undoTimer.current);
+    debouncedPush();
   }
 
   return (
     <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
+      <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {statusMessage}
+      </p>
       {/* 头部 */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -225,7 +253,7 @@ export function WishesPage() {
             <p className="text-moon-400">
               {wishes.length === 0
                 ? "写下第一个愿望，让星星陪你慢慢实现它。"
-                : "这里还没有星愿。"}
+                : `“${FILTERS.find((item) => item.key === filter)?.label}”中还没有星愿。`}
             </p>
             {wishes.length === 0 && (
               <StarButton
@@ -236,6 +264,11 @@ export function WishesPage() {
                 }}
               >
                 写下第一个愿望
+              </StarButton>
+            )}
+            {wishes.length > 0 && filter !== "all" && (
+              <StarButton size="sm" onClick={() => setFilter("all")}>
+                查看全部星愿
               </StarButton>
             )}
           </div>

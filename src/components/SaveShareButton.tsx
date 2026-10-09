@@ -38,6 +38,7 @@ export function SaveShareButton({
     <StarButton
       variant={state === "done" ? "lav" : "glass"}
       size="sm"
+      disabled={state === "saving"}
       onClick={handle}
     >
       {state === "done" ? (

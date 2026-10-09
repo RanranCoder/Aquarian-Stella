@@ -1,16 +1,31 @@
-import { seededRandom } from "@/lib/utils";
 import type { Zodiac } from "@/data/zodiacs";
+import type { BirthProfile } from "@/lib/astrology";
+import { getDailyAstrologyState } from "@/lib/astrology/daily-state";
+import type { ThemeId } from "@/lib/astrology/daily-state";
+import type { Aspect, ScoreResult } from "@/lib/astrology/types";
 
-type Theme = {
+/* ================================================================== */
+/*  Theme 类型                                                          */
+/* ================================================================== */
+
+export type Theme = {
   key: string;
-  core: string; // 一句话共鸣
-  expand: string; // 展开说明
+  core: string;
+  expand: string;
   actions: { yes: string; no: string };
   question: string;
 };
 
-export const THEMES: Theme[] = [
+/* ================================================================== */
+/*  主题内容池 —— 按 Transit 引擎的主题分类组织                             */
+/* ================================================================== */
+
+type ThemeEntry = Theme & { category: ThemeId };
+
+export const THEME_CONTENT: ThemeEntry[] = [
+  // ── emotion ──────────────────────────────────────────────────────
   {
+    category: "emotion",
     key: "边界",
     core: "今天，慢一点也没关系。",
     expand:
@@ -22,6 +37,7 @@ export const THEMES: Theme[] = [
     question: "今天有没有一件事，其实你可以晚一点回答？",
   },
   {
+    category: "emotion",
     key: "沉淀",
     core: "今天，把脚步放轻，让思绪沉淀下来。",
     expand:
@@ -32,29 +48,10 @@ export const THEMES: Theme[] = [
     },
     question: "如果把今天的烦躁翻译成一句话，它会是什么？",
   },
+
+  // ── relationship ─────────────────────────────────────────────────
   {
-    key: "重新开始",
-    core: "今天，允许自己重新开始。",
-    expand:
-      "过去的选择不必定义你。此刻的你，随时可以调整方向。重新开始不是否定过去，而是把经验装进新的行囊。",
-    actions: {
-      yes: "给一个旧目标写下新的第一步",
-      no: "反复责备过去的自己",
-    },
-    question: "如果重新开始，你最想先放下的是什么？",
-  },
-  {
-    key: "表达",
-    core: "今天，把心里的话，轻轻说出口。",
-    expand:
-      "你习惯了把情绪藏起来自己消化。但真正在意你的人，愿意听你说。表达不是示弱，而是让关系有机会更靠近。",
-    actions: {
-      yes: "对一个人说出你的真实感受",
-      no: "用沉默测试对方的在乎",
-    },
-    question: "最近有没有一句没说出口的话，值得被听见？",
-  },
-  {
+    category: "relationship",
     key: "靠近",
     core: "今天，值得为喜欢的人多走一步。",
     expand:
@@ -66,17 +63,47 @@ export const THEMES: Theme[] = [
     question: "你希望靠近谁，又因为什么在犹豫？",
   },
   {
-    key: "休息",
-    core: "今天，允许自己好好休息。",
+    category: "relationship",
+    key: "表达",
+    core: "今天，把心里的话，轻轻说出口。",
     expand:
-      "你不是一台永远运转的机器。疲惫是身体在提醒你：该充电了。休息不是浪费时间，是让你走得更远的方式。",
+      "你习惯了把情绪藏起来自己消化。但真正在意你的人，愿意听你说。表达不是示弱，而是让关系有机会更靠近。",
     actions: {
-      yes: "放下手机，好好睡一个完整的觉",
-      no: "因为没「产出」而苛责自己",
+      yes: "对一个人说出你的真实感受",
+      no: "用沉默测试对方的在乎",
     },
-    question: "你最近一次真正放松，是什么时候？",
+    question: "最近有没有一句没说出口的话，值得被听见？",
+  },
+
+  // ── creativity ───────────────────────────────────────────────────
+  {
+    category: "creativity",
+    key: "重新开始",
+    core: "今天，允许自己重新开始。",
+    expand:
+      "过去的选择不必定义你。此刻的你，随时可以调整方向。重新开始不是否定过去，而是把经验装进新的行囊。",
+    actions: {
+      yes: "给一个旧目标写下新的第一步",
+      no: "反复责备过去的自己",
+    },
+    question: "如果重新开始，你最想先放下的是什么？",
   },
   {
+    category: "creativity",
+    key: "灵感",
+    core: "今天，留一个缝隙让灵感进来。",
+    expand:
+      "你不需要刻意去寻找灵感，只需要给它留一点空间。散步、发呆、随手写下一句话——灵感喜欢放松的大脑。",
+    actions: {
+      yes: "做一件打破常规的事，哪怕很小",
+      no: "把自己困在日复一日的循环里",
+    },
+    question: "如果今天尝试一件没做过的事，你会选什么？",
+  },
+
+  // ── career ───────────────────────────────────────────────────────
+  {
+    category: "career",
     key: "专注",
     core: "今天，把心放在眼前这一件事上。",
     expand:
@@ -88,17 +115,7 @@ export const THEMES: Theme[] = [
     question: "如果今天只做一件事，你会选哪件？",
   },
   {
-    key: "温柔",
-    core: "今天，对自己温柔一点。",
-    expand:
-      "你习惯了对别人温柔，却常常忘了对自己。允许自己犯错，允许自己不完美，允许自己需要被照顾。",
-    actions: {
-      yes: "做一件让你感到被善待的小事",
-      no: "用最挑剔的话批评自己",
-    },
-    question: "如果安慰一个朋友，你会怎么对他说？试着对自己说一遍。",
-  },
-  {
+    category: "career",
     key: "勇气",
     core: "今天，你有力量跨出那一步。",
     expand:
@@ -109,29 +126,10 @@ export const THEMES: Theme[] = [
     },
     question: "你在害怕的，是事情本身，还是失败后的评价？",
   },
+
+  // ── social ───────────────────────────────────────────────────────
   {
-    key: "整理",
-    core: "今天，适合把混乱整理成秩序。",
-    expand:
-      "无论是房间、计划还是情绪，整理都能带来掌控感。你不需要一次解决所有，只要从一小块开始。",
-    actions: {
-      yes: "整理一处混乱，让空间和心都清爽",
-      no: "让待办清单无限膨胀",
-    },
-    question: "目前最让你觉得乱的一处，是什么？",
-  },
-  {
-    key: "等待",
-    core: "今天，学会等待也是一种行动。",
-    expand:
-      "不是所有答案都会立刻到来。有些事需要时间发酵，有些决定需要过程成熟。等不是停滞，是给事物以空间。",
-    actions: {
-      yes: "把暂时无法决定的事安心放一放",
-      no: "用反复纠结消耗自己",
-    },
-    question: "有没有一件事，你可以交给时间去回答？",
-  },
-  {
+    category: "social",
     key: "感恩",
     core: "今天，记得你已经拥有的。",
     expand:
@@ -142,63 +140,158 @@ export const THEMES: Theme[] = [
     },
     question: "此刻你最想感谢的人或事，是什么？",
   },
+  {
+    category: "social",
+    key: "整理",
+    core: "今天，适合把混乱整理成秩序。",
+    expand:
+      "无论是房间、计划还是情绪，整理都能带来掌控感。你不需要一次解决所有，只要从一小块开始。",
+    actions: {
+      yes: "整理一处混乱，让空间和心都清爽",
+      no: "让待办清单无限膨胀",
+    },
+    question: "目前最让你觉得乱的一处，是什么？",
+  },
 ];
 
-const DIMENSION_KEYS = [
-  { key: "情绪", weight: 0 },
-  { key: "爱情", weight: 1 },
-  { key: "创造力", weight: 2 },
-  { key: "人际", weight: 3 },
-  { key: "事业", weight: 4 },
-] as const;
+/* ================================================================== */
+/*  主题池索引                                                          */
+/* ================================================================== */
+
+const THEME_POOL: Record<ThemeId, ThemeEntry[]> = {
+  emotion: THEME_CONTENT.filter((t) => t.category === "emotion"),
+  relationship: THEME_CONTENT.filter((t) => t.category === "relationship"),
+  creativity: THEME_CONTENT.filter((t) => t.category === "creativity"),
+  career: THEME_CONTENT.filter((t) => t.category === "career"),
+  social: THEME_CONTENT.filter((t) => t.category === "social"),
+};
+
+/* ================================================================== */
+/*  确定性选择工具                                                       */
+/* ================================================================== */
+
+/** 将日期字符串解析为年内天数（1-366） */
+function dayOfYear(dateStr: string): number {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const base = new Date(y, 0, 1).getTime();
+  const target = new Date(y, m - 1, d).getTime();
+  return Math.floor((target - base) / 86400000) + 1;
+}
+
+/**
+ * 确定性地选择主题：基于当天年内天数 + 星座 slug 长度。
+ *
+ * 同一 sign + 同一 date → 同一 theme（稳定可复现）。
+ * 不同 date → 不同 theme（当 pool 长度 > 1 时轮换）。
+ */
+function selectTheme(pool: ThemeEntry[], signSlug: string, dateStr: string): ThemeEntry {
+  const idx = (dayOfYear(dateStr) + signSlug.length) % pool.length;
+  return pool[idx];
+}
+
+/* ================================================================== */
+/*  DailyHoroscope 类型                                                  */
+/* ================================================================== */
 
 export type DailyHoroscope = {
   date: string;
   theme: Theme;
   keywords: string[];
-  dimensions: { key: string; score: number }[]; // 1-5
+  dimensions: { key: string; score: number }[]; // 0-100
   signName: string;
   signSymbol: string;
+  /** 行运相位（有 profile 时非空） */
+  transitAspects: Aspect[];
+  /** 五维评分详情，含 factors（有 profile 时非空） */
+  scoresWithFactors: Record<string, ScoreResult>;
 };
 
-function seededScore(seed: number, idx: number): number {
-  const r = seededRandom(seed * 1.7 + idx * 3.1);
-  return 2 + Math.floor(r * 4); // 2-5
-}
+/* ================================================================== */
+/*  五维维度映射（UI 标签 ↔ 引擎 key）                                    */
+/* ================================================================== */
 
-/** 生成某星座在指定日期的今日星语（稳定可复现） */
+const DIMENSIONS: { key: string; engineKey: string }[] = [
+  { key: "情绪", engineKey: "emotion" },
+  { key: "爱情", engineKey: "love" },
+  { key: "创造力", engineKey: "creativity" },
+  { key: "人际", engineKey: "social" },
+  { key: "事业", engineKey: "career" },
+];
+
+/** 基础模式默认分值（无 profile 时使用） */
+const BASE_SCORE = 60;
+
+/* ================================================================== */
+/*  getDailyHoroscope                                                   */
+/* ================================================================== */
+
+/**
+ * 生成某星座在指定日期的今日星语。
+ *
+ * - 有 profile → 接入 Transit 引擎，根据行运相位计算关键词、评分和主题
+ * - 无 profile → 返回基于太阳星座的基础版本（主题通过确定性选择，评分固定）
+ *
+ * 相同 profile + 相同 date → 相同结果（确定性）。
+ *
+ * @param sign     太阳星座
+ * @param dateStr  日期字符串 YYYY-MM-DD
+ * @param profile  可选出生档案，提供后启用完整 Transit 计算
+ */
 export function getDailyHoroscope(
   sign: Zodiac,
   dateStr: string,
+  profile?: BirthProfile,
 ): DailyHoroscope {
-  const dateSeed = dateStr
-    .split("-")
-    .map(Number)
-    .reduce((a, b) => a * 13 + b, 0);
-  const seed = dateSeed + sign.slug.length * 7919;
+  let keywords: string[];
+  let dimensions: { key: string; score: number }[];
+  let dominantThemeId: ThemeId;
+  let transitAspects: Aspect[] = [];
+  let scoresWithFactors: Record<string, ScoreResult> = {};
 
-  const themeIdx = Math.floor(seededRandom(seed) * THEMES.length);
-  const theme = THEMES[themeIdx];
+  if (profile) {
+    // ── Transit 引擎模式 ─────────────────────────────────────────
+    const state = getDailyAstrologyState(profile, dateStr);
 
-  // 3 个关键词：主题 + 星座关键词中取 2 个
-  const kwShift = Math.floor(seededRandom(seed + 5) * sign.keywords.length);
-  const kws = [theme.key];
-  for (let i = 0; i < 2; i++) {
-    const kw = sign.keywords[(kwShift + i) % sign.keywords.length];
-    if (!kws.includes(kw)) kws.push(kw);
+    // 关键词：来自行运相位提取（最多取 4 个）
+    keywords = state.keywords.slice(0, 4);
+
+    // 主题：由行运相位的行星权重决定
+    dominantThemeId = state.dominantTheme as ThemeId;
+
+    // 五维评分：直接使用引擎计算的 0-100 分
+    dimensions = DIMENSIONS.map((d) => ({
+      key: d.key,
+      score: state.scores[d.engineKey]?.score ?? BASE_SCORE,
+    }));
+
+    // 行运相位 & 评分详情
+    transitAspects = state.transitAspects;
+    scoresWithFactors = state.scores as Record<string, ScoreResult>;
+  } else {
+    // ── 基础模式 ──────────────────────────────────────────────────
+    dominantThemeId = "emotion";
+    keywords = sign.keywords.slice(0, 3);
+    dimensions = DIMENSIONS.map((d) => ({
+      key: d.key,
+      score: BASE_SCORE,
+    }));
   }
 
-  const dimensions = DIMENSION_KEYS.map((d, i) => ({
-    key: d.key,
-    score: seededScore(seed + 11, i),
-  }));
+  // 从主题池中确定性选择
+  const theme = selectTheme(
+    THEME_POOL[dominantThemeId] ?? THEME_POOL.emotion,
+    sign.slug,
+    dateStr,
+  );
 
   return {
     date: dateStr,
     theme,
-    keywords: kws,
+    keywords,
     dimensions,
     signName: sign.name,
     signSymbol: sign.symbol,
+    transitAspects,
+    scoresWithFactors,
   };
 }

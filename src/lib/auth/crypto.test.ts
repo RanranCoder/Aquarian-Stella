@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { encode, toBase64Url, fromBase64Url, hmacSha256, sha256Hex, timingSafeEqual } from "./crypto";
+import {
+  encode,
+  toBase64Url,
+  fromBase64Url,
+  hmacSha256,
+  sha256Hex,
+  timingSafeEqual,
+  hashPassword,
+  verifyPassword,
+} from "./crypto";
 
 describe("crypto", () => {
   it("base64url roundtrip", () => {
@@ -29,5 +38,39 @@ describe("crypto", () => {
     expect(timingSafeEqual("abc", "abc")).toBe(true);
     expect(timingSafeEqual("abc", "abd")).toBe(false);
     expect(timingSafeEqual("abc", "abcd")).toBe(false);
+  });
+});
+
+describe("crypto (password)", () => {
+  it("hashPassword returns salt.hash format", async () => {
+    const h = await hashPassword("secret123", 1000, 32, 16);
+    expect(h).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+  });
+
+  it("hashPassword is non-different (random salt)", async () => {
+    const a = await hashPassword("same", 1000, 32, 16);
+    const b = await hashPassword("same", 1000, 32, 16);
+    expect(a).not.toBe(b);
+  });
+
+  it("verifyPassword succeeds for correct password", async () => {
+    const h = await hashPassword("mypassword", 1000, 32, 16);
+    expect(await verifyPassword("mypassword", h, 1000, 32)).toBe(true);
+  });
+
+  it("verifyPassword fails for wrong password", async () => {
+    const h = await hashPassword("mypassword", 1000, 32, 16);
+    expect(await verifyPassword("wrong", h, 1000, 32)).toBe(false);
+  });
+
+  it("verifyPassword fails for malformed hash", async () => {
+    expect(await verifyPassword("x", "nodothash")).toBe(false);
+    expect(await verifyPassword("x", "")).toBe(false);
+  });
+
+  it("roundtrip with default parameters", async () => {
+    const h = await hashPassword("test");
+    expect(await verifyPassword("test", h)).toBe(true);
+    expect(await verifyPassword("bad", h)).toBe(false);
   });
 });

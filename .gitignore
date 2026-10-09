@@ -51,3 +51,6 @@ next-env.d.ts
 # local tool artifacts
 .claude/
 .impeccable/
+
+# fonts (downloaded by prebuild script)
+/fonts/

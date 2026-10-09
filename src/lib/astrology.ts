@@ -16,7 +16,7 @@ export type BirthProfile = {
 };
 
 /** 用本地出生时间 + 时区构造 UTC 时刻（时间未知时取正午） */
-function birthMoment(profile: BirthProfile, tz: number): Date {
+export function birthMoment(profile: BirthProfile, tz: number): Date {
   const [y, m, d] = profile.birthDate.split("-").map(Number);
   const [h, min] = (profile.birthTime ?? "12:00").split(":").map(Number);
   return new Date(Date.UTC(y, m - 1, d, h - tz, min));

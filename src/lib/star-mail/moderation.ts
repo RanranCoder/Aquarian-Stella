@@ -6,6 +6,21 @@ const SPAM_KEYWORDS = [
 
 const URL_RE = /(https?:\/\/|www\.)\S+/gi;
 
+/** 清除 HTML 标签（防存储型 XSS 注入邮件模板） */
+function stripHtml(input: string): string {
+  return input.replace(/<[^>]*>/g, "");
+}
+
+/** 清除零宽字符和不可见 Unicode 字符（防绕过关键词过滤） */
+function stripInvisibleChars(input: string): string {
+  return input.replace(/[\u200B-\u200F\u2028-\u202F\u2060-\u2069\uFEFF]/g, "");
+}
+
+/** 组合清理：先去 HTML 标签，再去不可见字符 */
+function sanitize(input: string): string {
+  return stripInvisibleChars(stripHtml(input));
+}
+
 export type Moderation =
   | { allowed: true }
   | { allowed: false; reason: "SPAM_URL" | "SPAM_KEYWORD" | "SPAM_REPEAT" };
@@ -16,7 +31,7 @@ export function checkModeration(input: {
   signature: string;
   taName: string;
 }): Moderation {
-  const text = `${input.title}\n${input.taName}\n${input.body}\n${input.signature}`;
+  const text = sanitize(`${input.title}\n${input.taName}\n${input.body}\n${input.signature}`);
   const urls = text.match(URL_RE) ?? [];
   if (urls.length > 2) return { allowed: false, reason: "SPAM_URL" };
 
@@ -26,7 +41,7 @@ export function checkModeration(input: {
   }
 
   const seen = new Map<string, number>();
-  for (const line of input.body.split("\n")) {
+  for (const line of sanitize(input.body).split("\n")) {
     const t = line.trim();
     if (!t) continue;
     const n = (seen.get(t) ?? 0) + 1;

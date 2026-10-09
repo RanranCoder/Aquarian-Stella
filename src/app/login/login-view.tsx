@@ -27,7 +27,7 @@ export function LoginView({ next }: { next: string }) {
         />
         <h1 className="display-zh text-2xl">登录星语星愿</h1>
         <p className="text-sm leading-relaxed text-moon-400">
-          登录后，你的出生信息与星愿会保存在你的账号下。
+          登录后，你的出生信息与星愿会保存在你的账号下，换设备也能找回。
         </p>
       </div>
       <AccountCard onAuthed={onAuthed} />

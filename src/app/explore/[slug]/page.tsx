@@ -21,6 +21,9 @@ export async function generateMetadata({
   return {
     title: `${zodiac.name}性格、爱情与事业 · 十二星座`,
     description: `${zodiac.name}${zodiac.en}（${zodiac.dateRange}），${zodiac.elementLabel}，守护星${zodiac.rulingPlanet}。${zodiac.personality}${zodiac.love}查看今日星语与配对。`,
+    alternates: {
+      canonical: `https://stella.ranran.org.cn/explore/${slug}`,
+    },
   };
 }
 

@@ -69,7 +69,7 @@
   --animate-float: float 7s ease-in-out infinite;
   --animate-orbit: orbit 90s linear infinite;
   --animate-twinkle: twinkle 5s ease-in-out infinite;
-  --animate-shoot: shoot 9s ease-in-out infinite;
+  --animate-shoot: shoot 9s ease-in-out infinite backwards;
   --animate-fade-up: fade-up 0.8s var(--ease-luxe) both;
   --animate-breathe: breathe 6s ease-in-out infinite;
 

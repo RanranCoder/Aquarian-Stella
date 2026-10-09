@@ -4,6 +4,8 @@ import "./globals.css";
 import { CosmicBackground } from "@/components/CosmicBackground";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SyncProvider } from "@/components/SyncProvider";
+import { JsonLd } from "@/components/JsonLd";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://stella.ranran.org.cn"),
   title: {
     default: "星语星愿 · 看见星象，也看见自己",
     template: "%s · 星语星愿",
@@ -37,6 +40,24 @@ export const metadata: Metadata = {
     description: "一个属于年轻人的星象自我探索空间",
     locale: "zh_CN",
     type: "website",
+    siteName: "星语星愿",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "星语星愿 · 看见星象，也看见自己",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "星语星愿 · 看见星象，也看见自己",
+    description: "一个属于年轻人的星象自我探索空间",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
@@ -53,7 +74,13 @@ export default function RootLayout(props: LayoutProps<"/">) {
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
+      <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      </head>
       <body className="min-h-dvh">
+        <JsonLd />
+        <SyncProvider />
         <CosmicBackground />
         <SiteNav />
         <main className="relative z-10">{props.children}</main>

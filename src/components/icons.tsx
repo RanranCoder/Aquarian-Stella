@@ -48,6 +48,16 @@ export function StarIcon({ className }: IconProps) {
   );
 }
 
+/** 用户（我的/登录） */
+export function UserIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+    </Svg>
+  );
+}
+
 /** ☉ 太阳 */
 export function SunIcon({ className }: IconProps) {
   return (

@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { GlassCard } from "@/components/GlassCard";
 import { StarButton } from "@/components/StarButton";
+
+export const metadata: Metadata = {
+  title: "页面未找到 · 星语星愿",
+  robots: { index: false },
+};
 
 export default function NotFound() {
   return (

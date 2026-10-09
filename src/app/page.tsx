@@ -57,6 +57,15 @@ export default function HomePage() {
           </p>
           <div className="mt-2">
             <HeroCta size="lg" />
+            {/* 星邮入口（移动端）：这里藏着一封信 */}
+            <Link
+              href="/mail"
+              aria-label="这里藏着一封信，点击进入星邮"
+              className="mt-5 flex items-center justify-center gap-1.5 text-xs text-moon-500 transition-colors hover:text-gold-300 md:hidden"
+            >
+              <StarIcon className="h-3 w-3 text-gold-400/90" />
+              <span>这里藏着一封信</span>
+            </Link>
           </div>
         </div>
       </section>

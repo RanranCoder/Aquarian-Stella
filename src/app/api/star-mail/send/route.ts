@@ -8,7 +8,7 @@ import { validateStarMail } from "@/lib/star-mail/validate";
 import { checkModeration } from "@/lib/star-mail/moderation";
 import { maskEmail } from "@/lib/star-mail/mask";
 import { insertStarMailRecord } from "@/lib/star-mail/db";
-import { buildStarMailHtml } from "@/lib/star-mail/template";
+import { buildStarMailHtml, buildStarMailText } from "@/lib/star-mail/template";
 
 const USER_DAY_LIMIT = 3;
 const IP_DAY_LIMIT = 10;
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
         to: [v.recipient],
         subject: "一封来自星空的信",
         html,
+        text: buildStarMailText({ title: v.title, body: v.body, signature: v.signature, taName: v.taName }),
       }),
     });
     if (!res.ok) throw new Error(`resend failed: ${res.status}`);

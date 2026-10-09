@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildStarMailHtml, escapeHtml } from "./template";
+import { buildStarMailHtml, buildStarMailText, escapeHtml } from "./template";
 
 describe("escapeHtml", () => {
   it("escapes HTML metacharacters", () => {
@@ -16,5 +16,17 @@ describe("buildStarMailHtml", () => {
     expect(html).toContain("亲爱的 小星：");
     expect(html).toContain("—— R");
     expect(html).toContain("有些话，写下来就已经很好了。");
+  });
+});
+
+describe("buildStarMailText", () => {
+  it("renders a plain-text version without HTML escaping", () => {
+    const text = buildStarMailText({ title: "你好 <Ta>", body: "第一行\n第二行", signature: "R", taName: "小星" });
+    expect(text).toContain("你好 <Ta>");
+    expect(text).toContain("第一行\n第二行");
+    expect(text).toContain("亲爱的 小星：");
+    expect(text).toContain("—— R");
+    expect(text).toContain("—— Stella");
+    expect(text).not.toContain("&lt;");
   });
 });
