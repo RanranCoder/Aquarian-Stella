@@ -5,6 +5,7 @@
   "scripts": {
     "prebuild": "node scripts/download-font.mjs",
     "build": "next build",
+    "build:cloudflare": "opennextjs-cloudflare build",
     "dev": "next dev",
     "start": "next start",
     "lint": "eslint",

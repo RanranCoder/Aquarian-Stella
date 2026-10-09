@@ -47,6 +47,14 @@ npm run build   # 生产构建
 
 ## 部署（Cloudflare）
 
+使用 Cloudflare Workers Builds 自动部署时，请设置：
+
+- Build command：`npm run build:cloudflare`
+- Deploy command：`npx opennextjs-cloudflare deploy`
+
+`npm run build` 只构建 Next.js；`npm run build:cloudflare` 会额外生成
+Wrangler 所需的 `.open-next/worker.js` 和 `.open-next/assets`。
+
 ```bash
 npm run preview   # 本地预览 Worker
 npm run deploy    # 部署到 Cloudflare Workers
