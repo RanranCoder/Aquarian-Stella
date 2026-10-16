@@ -347,6 +347,8 @@ export function ProfilePage() {
                           <CheckIcon className="h-4 w-4" />
                           已清除云端
                         </>
+                      ) : busy ? (
+                        "正在清除…"
                       ) : (
                         "确认清除云端"
                       )}

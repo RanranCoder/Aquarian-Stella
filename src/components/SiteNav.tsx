@@ -152,7 +152,7 @@ export function SiteNav() {
                 className={cn(
                   "flex min-h-11 flex-1 flex-col items-center gap-0.5 rounded-full py-1.5 text-xs transition-colors duration-300",
                   active
-                    ? "bg-white/[0.08] text-gold-200"
+                    ? "bg-white/[0.14] font-medium text-gold-200"
                     : "text-moon-400",
                 )}
               >
@@ -171,7 +171,7 @@ export function SiteNav() {
               className={cn(
                 "flex min-h-11 w-full cursor-pointer flex-col items-center gap-0.5 rounded-full py-1.5 text-xs transition-colors duration-300",
                 moreActive
-                  ? "bg-white/[0.08] text-gold-200"
+                  ? "bg-white/[0.14] font-medium text-gold-200"
                   : "text-moon-400",
               )}
               onClick={() => setMoreOpen((open) => !open)}

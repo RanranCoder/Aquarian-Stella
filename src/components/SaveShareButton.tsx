@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { downloadNodeAsPng } from "@/lib/share";
 import { StarButton } from "./StarButton";
 import { CheckIcon } from "./icons";
@@ -16,21 +16,26 @@ export function SaveShareButton({
   targetId: string;
   filename: string;
 }) {
-  const [state, setState] = useState<"idle" | "saving" | "done">("idle");
+  const [state, setState] = useState<"idle" | "saving" | "done" | "error">("idle");
+  const resetTimer = useRef<number | null>(null);
 
   async function handle() {
+    // 生成中直接返回，避免重复触发与状态互相覆盖
+    if (state === "saving") return;
+    if (resetTimer.current) window.clearTimeout(resetTimer.current);
     const node = document.getElementById(targetId);
-    if (!node) return;
+    if (!node) {
+      setState("error");
+      return;
+    }
     setState("saving");
-    const timer = window.setTimeout(() => setState("idle"), 10000); // 兜底，避免无限卡住
     try {
       await downloadNodeAsPng(node, filename);
-      window.clearTimeout(timer);
       setState("done");
-      window.setTimeout(() => setState("idle"), 1800);
+      resetTimer.current = window.setTimeout(() => setState("idle"), 1800);
     } catch {
-      window.clearTimeout(timer);
-      setState("idle");
+      // 生成失败给出可重试的提示，而不是静默回到初始状态
+      setState("error");
     }
   }
 
@@ -48,6 +53,8 @@ export function SaveShareButton({
         </>
       ) : state === "saving" ? (
         "生成中…"
+      ) : state === "error" ? (
+        "保存失败，重试"
       ) : (
         "保存图片"
       )}

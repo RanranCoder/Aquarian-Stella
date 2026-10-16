@@ -11,7 +11,8 @@ import {
   CloseIcon,
 } from "@/components/icons";
 import { store, useMounted, newId, WISH_CATEGORY, type Wish } from "@/lib/store";
-import { pushNow } from "@/lib/sync";
+import { pushNow, useSyncFeedback } from "@/lib/sync";
+import { WISH_TITLE_MAX } from "@/lib/wishes/limits";
 import { formatDateDot, localDateStr } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -31,12 +32,14 @@ const CATEGORIES = Object.entries(WISH_CATEGORY).map(([key, v]) => ({
 export function WishesPage() {
   const mounted = useMounted();
   const s = store.useStore();
+  const sync = useSyncFeedback();
   const [filter, setFilter] = useState<Wish["status"] | "all">("all");
   const [showNew, setShowNew] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<Wish["category"]>("growth");
   const [undo, setUndo] = useState<Wish | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
+  const [justAdded, setJustAdded] = useState<string | null>(null);
   const undoTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -47,7 +50,8 @@ export function WishesPage() {
       setShowNew(true);
       const prefill = params.get("title");
       if (prefill) {
-        setTitle(prefill);
+        // 历史链接可能带有超长文案，这里与保存约束保持一致
+        setTitle(prefill.slice(0, WISH_TITLE_MAX));
         setCategory("growth");
       }
       /* eslint-enable react-hooks/set-state-in-effect */
@@ -56,6 +60,17 @@ export function WishesPage() {
       if (undoTimer.current) window.clearTimeout(undoTimer.current);
     };
   }, []);
+
+  // 新增后滚动到新记录并短暂高亮，避免在其它筛选下“保存完却看不到”
+  useEffect(() => {
+    if (!justAdded) return;
+    const el = document.getElementById(`wish-${justAdded}`);
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.focus({ preventScroll: true });
+    const t = window.setTimeout(() => setJustAdded(null), 2400);
+    return () => window.clearTimeout(t);
+  }, [justAdded, filter]);
 
   const wishes = useMemo(
     () => (mounted ? s.wishes : []),
@@ -68,17 +83,22 @@ export function WishesPage() {
   );
 
   const activeCount = wishes.filter((w) => w.status === "active").length;
+  // 超过标题长度上限的记录只能留在这台设备
+  const localOnlyCount = wishes.filter((w) => w.title.length > WISH_TITLE_MAX).length;
+  const loggedIn = mounted && s.ownerUid !== undefined;
 
   // 防抖推送：500ms 内的多次变更合并为一次请求
   const pushTimer = useRef<number | null>(null);
   function debouncedPush() {
     if (pushTimer.current) window.clearTimeout(pushTimer.current);
-    pushTimer.current = window.setTimeout(() => { pushNow(); }, 500);
+    pushTimer.current = window.setTimeout(() => {
+      void pushNow();
+    }, 500);
   }
 
   function addWish() {
     const t = title.trim();
-    if (!t) return;
+    if (!t || t.length > WISH_TITLE_MAX) return;
     const wish: Wish = {
       id: newId(),
       title: t,
@@ -90,6 +110,14 @@ export function WishesPage() {
     store.set((prev) => ({ ...prev, wishes: [wish, ...prev.wishes] }));
     setTitle("");
     setShowNew(false);
+    // 新愿望默认“进行中”；当前筛选会把它藏起来时自动切回，让保存结果立即可见
+    if (filter !== "all" && filter !== "active") setFilter("active");
+    setJustAdded(wish.id);
+    setStatusMessage(
+      s.ownerUid
+        ? "已保存，正在同步到账户。"
+        : "已保存到本机，登录后会同步到账户。",
+    );
     debouncedPush();
   }
 
@@ -133,12 +161,14 @@ export function WishesPage() {
 
   function undoDelete() {
     if (!undo) return;
+    // 提升版本时钟：恢复版本必须晚于删除（tombstone）版本，否则下次同步又会消失
+    const restored: Wish = { ...undo, updatedAt: new Date().getTime() };
     store.set((prev) => ({
       ...prev,
-      wishes: [undo, ...prev.wishes],
-      pendingDeletes: prev.pendingDeletes.filter((id) => id !== undo.id),
+      wishes: [restored, ...prev.wishes],
+      pendingDeletes: prev.pendingDeletes.filter((id) => id !== restored.id),
     }));
-    setStatusMessage(`已恢复“${undo.title}”。`);
+    setStatusMessage(`已恢复“${restored.title}”，正在同步。`);
     setUndo(null);
     if (undoTimer.current) window.clearTimeout(undoTimer.current);
     debouncedPush();
@@ -176,6 +206,35 @@ export function WishesPage() {
         </StarButton>
       </div>
 
+      {/* 同步反馈：明确“已同步到账户 / 仅保存在本机 / 同步失败” */}
+      {loggedIn && (localOnlyCount > 0 || sync.status !== "idle") && (
+        <div className="mb-6 flex flex-col gap-1 text-xs">
+          {sync.status === "error" && (
+            <p className="text-gold-300">
+              同步失败：星愿已保存在本机。
+              <button
+                type="button"
+                onClick={() => void pushNow()}
+                className="ml-2 underline underline-offset-2 transition-colors hover:text-gold-200"
+              >
+                立即重试
+              </button>
+            </p>
+          )}
+          {sync.status === "syncing" && (
+            <p className="text-moon-500">正在同步到账户…</p>
+          )}
+          {sync.status === "synced" && (
+            <p className="text-moon-500">已同步到账户。</p>
+          )}
+          {localOnlyCount > 0 && (
+            <p className="text-gold-300">
+              {localOnlyCount} 条星愿超过 {WISH_TITLE_MAX} 字，仅保存在本机，不会同步到账户。
+            </p>
+          )}
+        </div>
+      )}
+
       {/* 新建 */}
       {showNew && (
         <GlassCard glow="gold" className="animate-fade-up mb-8">
@@ -195,12 +254,29 @@ export function WishesPage() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="输入你的星愿……"
               rows={3}
-              className="w-full resize-none rounded-xl border border-hairline bg-white/[0.04] px-4 py-3 text-[15px] leading-relaxed text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-gold-400"
+              maxLength={WISH_TITLE_MAX}
+              aria-describedby="wish-title-hint"
+              className="w-full resize-none rounded-xl border border-hairline bg-white/[0.04] px-4 py-3 text-base leading-relaxed text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-gold-400"
             />
+            <div className="flex items-center justify-between gap-4">
+              <p id="wish-title-hint" className="text-xs text-moon-500">
+                保存后同步到你的账号，最多 {WISH_TITLE_MAX} 字。
+              </p>
+              <p
+                className={cn(
+                  "shrink-0 text-xs tabular-nums",
+                  title.length >= WISH_TITLE_MAX ? "text-gold-300" : "text-moon-500",
+                )}
+              >
+                {title.length} / {WISH_TITLE_MAX}
+              </p>
+            </div>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((c) => (
                 <button
                   key={c.key}
+                  type="button"
+                  aria-pressed={category === c.key}
                   onClick={() => setCategory(c.key)}
                   className={cn(
                     "flex min-h-11 items-center rounded-full border px-3.5 py-1.5 text-sm transition-colors",
@@ -232,6 +308,8 @@ export function WishesPage() {
         {FILTERS.map((f) => (
           <button
             key={f.key}
+            type="button"
+            aria-pressed={filter === f.key}
             onClick={() => setFilter(f.key)}
             className={cn(
               "flex min-h-11 items-center rounded-full border px-4 py-1.5 text-sm transition-colors",
@@ -277,75 +355,94 @@ export function WishesPage() {
         <div className="flex flex-col gap-4">
           {filtered.map((w) => {
             const cat = WISH_CATEGORY[w.category];
+            const localOnly = w.title.length > WISH_TITLE_MAX;
             return (
-              <GlassCard
+              <div
                 key={w.id}
-                glow={w.status === "done" ? "gold" : "none"}
-                interactive
+                id={`wish-${w.id}`}
+                tabIndex={-1}
+                className={cn(
+                  "rounded-panel outline-none transition-shadow duration-300",
+                  justAdded === w.id && "ring-2 ring-gold-400/70",
+                )}
               >
-                <div className="flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:gap-8 md:p-7">
-                  <div className="flex items-start gap-4">
-                    <span
-                      className={cn(
-                        "mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full border text-lg",
-                        w.status === "done"
-                          ? "border-gold-400 bg-gold-400/10 text-gold-300"
-                          : "border-hairline bg-white/[0.04] text-moon-400",
-                      )}
-                    >
-                      {cat.mark}
-                    </span>
-                    <div>
-                      <p
+                <GlassCard
+                  glow={w.status === "done" ? "gold" : "none"}
+                  interactive
+                >
+                  <div className="flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:gap-8 md:p-7">
+                    <div className="flex items-start gap-4">
+                      <span
                         className={cn(
-                          "text-[15px] leading-relaxed md:text-base",
-                          w.status === "done" && "text-moon-400 line-through",
+                          "mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full border text-lg",
+                          w.status === "done"
+                            ? "border-gold-400 bg-gold-400/10 text-gold-300"
+                            : "border-hairline bg-white/[0.04] text-moon-400",
                         )}
                       >
-                        {w.title}
-                      </p>
-                      <p className="mt-1.5 text-xs text-moon-500">
-                        {cat.label} · 创建于 {formatDateDot(w.createdAt)}
-                        {w.completedAt && ` · 实现于 ${formatDateDot(w.completedAt)}`}
-                      </p>
+                        {cat.mark}
+                      </span>
+                      <div>
+                        <p
+                          className={cn(
+                            "text-[15px] leading-relaxed md:text-base",
+                            w.status === "done" && "text-moon-400 line-through",
+                          )}
+                        >
+                          {w.title}
+                        </p>
+                        <p className="mt-1.5 text-xs text-moon-500">
+                          {cat.label} · 创建于 {formatDateDot(w.createdAt)}
+                          {w.completedAt && ` · 实现于 ${formatDateDot(w.completedAt)}`}
+                          {localOnly && (
+                            <span className="ml-2 rounded-full border border-gold-400/40 px-2 py-0.5 text-gold-300">
+                              仅保存在本机
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 pl-13 md:pl-0">
+                      {w.status === "active" && (
+                        <button
+                          type="button"
+                          onClick={() => updateWish(w.id, { status: "done" })}
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-gold-400/60 px-3.5 py-1.5 text-sm text-gold-200 transition-colors hover:bg-gold-400/10"
+                        >
+                          <CheckIcon className="h-4 w-4" />
+                          已实现
+                        </button>
+                      )}
+                      {w.status === "active" && (
+                        <button
+                          type="button"
+                          onClick={() => updateWish(w.id, { status: "archived" })}
+                          className="flex min-h-11 items-center rounded-full border border-hairline px-3.5 py-1.5 text-sm text-moon-400 transition-colors hover:text-moon-100"
+                        >
+                          放下
+                        </button>
+                      )}
+                      {w.status === "done" && (
+                        <button
+                          type="button"
+                          onClick={() => updateWish(w.id, { status: "active" })}
+                          className="flex min-h-11 items-center rounded-full border border-hairline px-3.5 py-1.5 text-sm text-moon-400 transition-colors hover:text-moon-100"
+                        >
+                          重新进行
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeWish(w.id)}
+                        aria-label="删除"
+                        className="grid h-11 w-11 place-items-center rounded-full border border-hairline text-moon-500 transition-colors hover:border-red-400/50 hover:text-red-300"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 pl-13 md:pl-0">
-                    {w.status === "active" && (
-                      <button
-                        onClick={() => updateWish(w.id, { status: "done" })}
-                        className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-gold-400/60 px-3.5 py-1.5 text-sm text-gold-200 transition-colors hover:bg-gold-400/10"
-                      >
-                        <CheckIcon className="h-4 w-4" />
-                        已实现
-                      </button>
-                    )}
-                    {w.status === "active" && (
-                      <button
-                        onClick={() => updateWish(w.id, { status: "archived" })}
-                        className="flex min-h-11 items-center rounded-full border border-hairline px-3.5 py-1.5 text-sm text-moon-400 transition-colors hover:text-moon-100"
-                      >
-                        放下
-                      </button>
-                    )}
-                    {w.status === "done" && (
-                      <button
-                        onClick={() => updateWish(w.id, { status: "active" })}
-                        className="flex min-h-11 items-center rounded-full border border-hairline px-3.5 py-1.5 text-sm text-moon-400 transition-colors hover:text-moon-100"
-                      >
-                        重新进行
-                      </button>
-                    )}
-                    <button
-                      onClick={() => removeWish(w.id)}
-                      aria-label="删除"
-                      className="grid h-11 w-11 place-items-center rounded-full border border-hairline text-moon-500 transition-colors hover:border-red-400/50 hover:text-red-300"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </GlassCard>
+                </GlassCard>
+              </div>
             );
           })}
         </div>

@@ -16,7 +16,7 @@ export default function HomePage() {
   return (
     <>
       {/* ===== Hero ===== */}
-      <section className="relative flex min-h-[88dvh] flex-col items-center justify-center overflow-hidden px-6 pt-6 pb-16 text-center">
+      <section className="relative flex min-h-[72dvh] flex-col items-center justify-center overflow-hidden px-6 pt-6 pb-10 text-center md:min-h-[88dvh] md:pb-16">
         {/* 轨道视觉层 */}
         <div
           className="pointer-events-none absolute left-1/2 top-[52%] -translate-x-1/2 -translate-y-1/2 opacity-80"
@@ -49,7 +49,7 @@ export default function HomePage() {
         </Link>
 
         <div className="relative flex flex-col items-center gap-6">
-          <h1 className="display-zh max-w-3xl text-4xl leading-[1.15] tracking-[0.02em] md:text-6xl md:leading-[1.12]">
+          <h1 className="display-zh max-w-3xl text-balance text-[clamp(2.1rem,4.5vw_+_1rem,3.75rem)] leading-[1.15] tracking-[0.02em] md:leading-[1.12]">
             今晚的星星，想和你说些什么？
           </h1>
           <p className="max-w-md text-[15px] leading-relaxed text-moon-400">
@@ -71,7 +71,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== 今日星语预览 ===== */}
-      <section className="px-6 py-16 md:py-24">
+      <section className="px-6 pt-8 pb-16 md:py-24">
         <TodayPreview />
       </section>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { GlassCard } from "@/components/GlassCard";
 import { StarButton } from "@/components/StarButton";
 import { DatePicker } from "@/components/DatePicker";
@@ -90,6 +90,8 @@ export function RelationshipPage() {
   const [aiRelation, setAiRelation] = useState<RelationContent | null>(null);
   const [sharedReport, setSharedReport] = useState(false);
   const [shareError, setShareError] = useState("");
+  /** AI 解读请求序号：只接受最新一次请求的响应，避免慢网下旧响应覆盖新结果。 */
+  const aiRequestId = useRef(0);
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.hash.slice(1)).get("relation");
@@ -122,7 +124,8 @@ export function RelationshipPage() {
     setResult(getRelation(profile, taProfile));
     setAiRelation(null); // 重置 AI 内容
 
-    // 请求 AI 内容
+    // 请求 AI 内容：递增序号，只接受最新一次请求的响应
+    const requestId = ++aiRequestId.current;
     fetch("/api/astrology/ai-content", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -131,9 +134,24 @@ export function RelationshipPage() {
     })
       .then((r) => r.json())
       .then((data) => {
+        if (requestId !== aiRequestId.current) return;
         if (data.content) setAiRelation(data.content as RelationContent);
       })
       .catch(() => {});
+  }
+
+  /** 返回输入页：让在途的 AI 请求失效，防止旧响应写回已离开的结果页 */
+  function backToInput() {
+    aiRequestId.current += 1;
+    setResult(null);
+    setAiRelation(null);
+    setSharedReport(false);
+    setShareError("");
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}`,
+    );
   }
 
   async function copyShare() {
@@ -306,17 +324,7 @@ export function RelationshipPage() {
             <div className="flex flex-col items-center gap-6 p-card text-center md:p-10">
               <button
                 type="button"
-                onClick={() => {
-                  setResult(null);
-                  setAiRelation(null);
-                  setSharedReport(false);
-                  setShareError("");
-                  window.history.replaceState(
-                    null,
-                    "",
-                    `${window.location.pathname}${window.location.search}`,
-                  );
-                }}
+                onClick={backToInput}
                 className="inline-flex items-center gap-1.5 self-start rounded-full border border-hairline px-3.5 py-1.5 text-xs text-moon-400 transition-colors hover:border-lav-400/60 hover:text-moon-100"
               >
                 <ChevronLeftIcon className="h-3.5 w-3.5" />
@@ -330,7 +338,7 @@ export function RelationshipPage() {
                 </span>
               </div>
               <div className="flex flex-wrap justify-center gap-2">
-                {(aiRelation?.keywords ?? result.keywords).map((k) => (
+                {(aiRelation?.keywords ?? result.keywords).slice(0, 3).map((k) => (
                   <span
                     key={k}
                     className="rounded-full border border-hairline bg-white/[0.04] px-3.5 py-1.5 text-sm text-gold-200"
@@ -345,70 +353,34 @@ export function RelationshipPage() {
                 </span>
                 <span className="pb-1 text-sm text-moon-500">关系指数</span>
               </div>
-              <p className="max-w-md text-sm leading-relaxed text-moon-400">
+              {/* 先给一条核心观察，详细依据与展开项放在后面 */}
+              <p className="max-w-md text-[15px] leading-relaxed text-moon-200">
+                {aiRelation?.attraction?.[0] ?? result.attraction[0]}
+              </p>
+              <p className="max-w-md text-sm leading-relaxed text-moon-500">
                 分数只是一个小角度。真正值得看的，是你们如何在差异里相处。
               </p>
-            </div>
-          </GlassCard>
-
-          {/* 本次解读的信息范围 */}
-          <GlassCard glow="none" className="mb-5">
-            <div className="flex flex-col gap-5 p-card">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-xs tracking-[0.18em] text-moon-500">
-                    解读范围
-                  </p>
-                  <h2 className="display-zh mt-1 text-xl text-moon-100">
-                    这次结果，使用了哪些信息
-                  </h2>
-                </div>
-                <span className="w-fit rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-xs text-moon-400">
-                  适合用来开启对话
-                </span>
-              </div>
-              <p className="text-sm leading-relaxed text-moon-400">
-                这份解读基于双方已填写的出生信息，提供相处的观察角度，而不是给关系下确定结论。
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <nav aria-label="结果导航" className="flex flex-wrap justify-center gap-2">
                 {[
-                  { key: "you", label: "你", data: ownBirthData },
-                  { key: "ta", label: name.trim() || "TA", data: taBirthData },
-                ].map(({ key, label, data }) => (
-                  <section
-                    key={key}
-                    aria-labelledby={`relationship-data-${key}`}
-                    className="rounded-xl border border-hairline bg-white/[0.03] p-4"
+                  { href: "#relation-attraction", label: "吸引之处" },
+                  { href: "#relation-misunderstanding", label: "容易误解的地方" },
+                  { href: "#relation-advice", label: "给你们的建议" },
+                ].map((x) => (
+                  <a
+                    key={x.href}
+                    href={x.href}
+                    className="rounded-full border border-hairline px-3 py-1.5 text-xs text-moon-300 transition-colors hover:border-lav-400/60 hover:text-moon-100"
                   >
-                    <h3
-                      id={`relationship-data-${key}`}
-                      className="text-sm text-moon-200"
-                    >
-                      {label}
-                    </h3>
-                    <p className="mt-1 text-xs text-gold-200">{data.summary}</p>
-                    <dl className="mt-4 flex flex-col gap-2 text-xs">
-                      <div className="flex items-baseline justify-between gap-4">
-                        <dt className="shrink-0 text-moon-500">出生时间</dt>
-                        <dd className="text-right text-moon-300">{data.time}</dd>
-                      </div>
-                      <div className="flex items-baseline justify-between gap-4">
-                        <dt className="shrink-0 text-moon-500">出生地</dt>
-                        <dd className="text-right text-moon-300">{data.city}</dd>
-                      </div>
-                    </dl>
-                  </section>
+                    {x.label}
+                  </a>
                 ))}
-              </div>
-              <p className="border-t border-white/[0.06] pt-4 text-xs leading-relaxed text-moon-500">
-                本页比较双方行星之间的相位，不计算上升点。未填写的出生时间会以 12:00 近似；未填写或未匹配的出生地会按 UTC+8 近似。
-              </p>
+              </nav>
             </div>
           </GlassCard>
 
           {/* 优势 */}
           <GlassCard glow="none" className="mb-5">
-            <div className="flex flex-col gap-5 p-card">
+            <div id="relation-attraction" className="flex scroll-mt-24 flex-col gap-5 p-card">
               <h2 className="flex items-center gap-2 text-sm tracking-[0.18em] text-lav-300">
                 <SparkleIcon className="h-4 w-4" />
                 容易被彼此吸引的地方
@@ -429,7 +401,10 @@ export function RelationshipPage() {
 
           {/* 挑战 */}
           <GlassCard glow="none" className="mb-5">
-            <div className="flex flex-col gap-5 p-card">
+            <div
+              id="relation-misunderstanding"
+              className="flex scroll-mt-24 flex-col gap-5 p-card"
+            >
               <h2 className="flex items-center gap-2 text-sm tracking-[0.18em] text-moon-500">
                 <HeartIcon className="h-4 w-4" />
                 最容易产生误解的地方
@@ -461,7 +436,7 @@ export function RelationshipPage() {
               </div>
             </GlassCard>
             <GlassCard glow="gold">
-              <div className="flex flex-col gap-4 p-card">
+              <div id="relation-advice" className="flex scroll-mt-24 flex-col gap-4 p-card">
                 <h2 className="text-sm tracking-[0.18em] text-gold-300">
                   给你们的建议
                 </h2>
@@ -471,6 +446,64 @@ export function RelationshipPage() {
               </div>
             </GlassCard>
           </div>
+
+          {/* 本次解读的信息范围：收纳为可展开区，不占用结果页前半段 */}
+          <GlassCard glow="none" className="mb-5" interactive>
+            <details className="group p-card">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-5 [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center gap-3">
+                  <SparkleIcon className="h-4 w-4 text-moon-400" />
+                  <span className="text-sm text-moon-200">
+                    这次结果，使用了哪些信息
+                  </span>
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-hairline text-moon-400 transition-transform duration-300 group-open:rotate-180"
+                >
+                  <ChevronDownIcon className="h-4 w-4" />
+                </span>
+              </summary>
+              <div className="animate-fade-up mt-5 flex flex-col gap-5">
+                <p className="text-sm leading-relaxed text-moon-400">
+                  这份解读基于双方已填写的出生信息，提供相处的观察角度，而不是给关系下确定结论。
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    { key: "you", label: "你", data: ownBirthData },
+                    { key: "ta", label: name.trim() || "TA", data: taBirthData },
+                  ].map(({ key, label, data }) => (
+                    <section
+                      key={key}
+                      aria-labelledby={`relationship-data-${key}`}
+                      className="rounded-xl border border-hairline bg-white/[0.03] p-4"
+                    >
+                      <h3
+                        id={`relationship-data-${key}`}
+                        className="text-sm text-moon-200"
+                      >
+                        {label}
+                      </h3>
+                      <p className="mt-1 text-xs text-gold-200">{data.summary}</p>
+                      <dl className="mt-4 flex flex-col gap-2 text-xs">
+                        <div className="flex items-baseline justify-between gap-4">
+                          <dt className="shrink-0 text-moon-500">出生时间</dt>
+                          <dd className="text-right text-moon-300">{data.time}</dd>
+                        </div>
+                        <div className="flex items-baseline justify-between gap-4">
+                          <dt className="shrink-0 text-moon-500">出生地</dt>
+                          <dd className="text-right text-moon-300">{data.city}</dd>
+                        </div>
+                      </dl>
+                    </section>
+                  ))}
+                </div>
+                <p className="border-t border-white/[0.06] pt-4 text-xs leading-relaxed text-moon-500">
+                  本页比较双方行星之间的相位，不计算上升点。未填写的出生时间会以 12:00 近似；未填写或未匹配的出生地会按 UTC+8 近似。
+                </p>
+              </div>
+            </details>
+          </GlassCard>
 
           {/* 星象依据 */}
           <section aria-labelledby="relationship-evidence-heading" className="mb-5">
@@ -668,6 +701,9 @@ export function RelationshipPage() {
                   )}
                 </StarButton>
               </div>
+              <p className="text-center text-xs leading-relaxed text-moon-500">
+                链接只包含这份解读的快照，不含出生日期、时间与城市。对方打开即可看到结果。
+              </p>
             </div>
           </GlassCard>
           {/* 星邮入口 */}

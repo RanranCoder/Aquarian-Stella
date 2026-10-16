@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getUid } from "@/lib/auth/uid";
 import { getWishesByUser, getDeletedIdsByUser, syncWishes, type SyncWish } from "@/lib/wishes/db";
+import { WISH_TITLE_MAX } from "@/lib/wishes/limits";
 
 const CATEGORIES = new Set(["love", "growth", "life", "career", "other"]);
 const STATUSES = new Set(["active", "done", "archived"]);
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TITLE_MAX = 200;
 const MAX_ITEMS = 500;
 const ID_MAX = 100;
 
@@ -25,7 +25,7 @@ function isValidWish(w: unknown): w is SyncWish {
   if (!w || typeof w !== "object" || Array.isArray(w)) return false;
   const x = w as Record<string, unknown>;
   if (typeof x.id !== "string" || x.id.length === 0 || x.id.length > ID_MAX) return false;
-  if (typeof x.title !== "string" || x.title.length === 0 || x.title.length > TITLE_MAX) return false;
+  if (typeof x.title !== "string" || x.title.length === 0 || x.title.length > WISH_TITLE_MAX) return false;
   if (typeof x.category !== "string" || !CATEGORIES.has(x.category)) return false;
   if (typeof x.status !== "string" || !STATUSES.has(x.status)) return false;
   if (typeof x.createdAt !== "string" || !isValidDate(x.createdAt)) return false;

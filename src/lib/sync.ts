@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import { store, pushWishesToServer, pullWishesFromServer, pushProfileToServer, pullProfileFromServer, getState, type Wish } from "./store";
 import type { BirthProfile } from "./astrology";
 
@@ -101,23 +102,70 @@ export function mergeProfile(
 }
 
 /* ------------------------------------------------------------------ */
+/*  同步状态：供界面展示同步中 / 已同步 / 失败与仅存本机条数               */
+/* ------------------------------------------------------------------ */
+
+export type SyncFeedback = {
+  status: "idle" | "syncing" | "synced" | "error";
+  /** 仅保存在本机（如超过标题长度上限）的星愿条数。 */
+  localOnly: number;
+  /** 最近一次同步完成时刻（ms），0 表示尚未同步。 */
+  at: number;
+};
+
+const IDLE_FEEDBACK: SyncFeedback = { status: "idle", localOnly: 0, at: 0 };
+
+let feedback: SyncFeedback = IDLE_FEEDBACK;
+const feedbackListeners = new Set<() => void>();
+
+function setFeedback(next: Partial<SyncFeedback>) {
+  feedback = { ...feedback, ...next };
+  feedbackListeners.forEach((l) => l());
+}
+
+/** 订阅星愿同步状态（SSR/首帧返回 idle，避免 hydration 不一致）。 */
+export function useSyncFeedback(): SyncFeedback {
+  return useSyncExternalStore(
+    (cb) => {
+      feedbackListeners.add(cb);
+      return () => feedbackListeners.delete(cb);
+    },
+    () => feedback,
+    () => IDLE_FEEDBACK,
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  编排：登录 / 恢复后的完整同步                                        */
 /* ------------------------------------------------------------------ */
 
-let inflight = false;
+let queue: Promise<unknown> = Promise.resolve();
+
+/** 所有云端写入串行执行：删除与随后的撤销不会因请求乱序互相覆盖。 */
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
+  const next = queue.then(task, task);
+  queue = next.then(
+    () => undefined,
+    () => undefined,
+  );
+  return next;
+}
 
 /** 当前登录账号下发起一次同步：拉取合并 → 有本地更新则回推。 */
-export async function pushNow(): Promise<void> {
-  if (inflight || typeof window === "undefined") return;
-  const s = getState();
+export function pushNow(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
   // 未登录或本机属于他人账号 → 不推
-  if (!s.ownerUid) return;
-  inflight = true;
-  try {
-    await pushWishesToServer();
-  } finally {
-    inflight = false;
-  }
+  if (!getState().ownerUid) return Promise.resolve();
+  setFeedback({ status: "syncing" });
+  return enqueue(async () => {
+    if (!getState().ownerUid) return;
+    const result = await pushWishesToServer();
+    setFeedback({
+      status: result.ok ? "synced" : "error",
+      localOnly: result.localOnly,
+      at: Date.now(),
+    });
+  });
 }
 
 /**
@@ -127,60 +175,63 @@ export async function pushNow(): Promise<void> {
  * 同账号 → 增量合并 + 回推。
  * 异账号残留 → 以云端覆盖本地，不推本地。
  */
-export async function syncAfterAuthChange(uid: number): Promise<void> {
-  if (inflight || typeof window === "undefined") return;
-  inflight = true;
-  try {
-    const s = getState();
-    const firstTime = s.ownerUid === undefined;
-    const sameUser = s.ownerUid === uid;
+export function syncAfterAuthChange(uid: number): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  setFeedback({ status: "syncing" });
+  return enqueue(async () => {
+    try {
+      const s = getState();
+      const firstTime = s.ownerUid === undefined;
+      const sameUser = s.ownerUid === uid;
 
-    // 云端拉取 email 用到别处，这里只关心 uid 归属
-    if (firstTime || sameUser) {
-      const server = await pullWishesFromServer();
-      if (server) {
-        const local = getState().wishes;
-        const { merged, toRePush, toRemoveLocally } = mergeWishes(local, server.wishes, server.deletedIds);
+      // 云端拉取 email 用到别处，这里只关心 uid 归属
+      if (firstTime || sameUser) {
+        const server = await pullWishesFromServer();
+        if (server) {
+          const local = getState().wishes;
+          const { merged, toRePush, toRemoveLocally } = mergeWishes(local, server.wishes, server.deletedIds);
+          store.set((prev) => ({
+            ...prev,
+            wishes: merged,
+            pendingDeletes: prev.pendingDeletes.filter((id) => !toRemoveLocally.has(id)),
+          }));
+          if (toRePush.length > 0) await pushWishesToServer();
+        }
+
+        // profile
+        const srv = await pullProfileFromServer();
+        const cur = getState();
+        const mp = mergeProfile(
+          cur.profile,
+          cur.profileUpdatedAt,
+          srv?.profile ?? null,
+          srv?.updatedAt ?? 0,
+        );
         store.set((prev) => ({
           ...prev,
-          wishes: merged,
-          pendingDeletes: prev.pendingDeletes.filter((id) => !toRemoveLocally.has(id)),
+          profile: mp.profile,
+          onboarded: prev.onboarded || mp.onboarded,
         }));
-        if (toRePush.length > 0) await pushWishesToServer();
+        if (mp.toRePush) await pushProfileToServer();
+      } else {
+        // 他人残留 → 云端覆盖本地
+        const server = await pullWishesFromServer();
+        if (server) {
+          store.set((prev) => ({ ...prev, wishes: server!.wishes, pendingDeletes: [] }));
+        }
+        const srv = await pullProfileFromServer();
+        store.set((prev) => ({
+          ...prev,
+          profile: srv?.profile ?? null,
+          profileUpdatedAt: srv?.updatedAt ?? undefined,
+          onboarded: srv?.profile ? true : prev.onboarded,
+        }));
       }
 
-      // profile
-      const srv = await pullProfileFromServer();
-      const cur = getState();
-      const mp = mergeProfile(
-        cur.profile,
-        cur.profileUpdatedAt,
-        srv?.profile ?? null,
-        srv?.updatedAt ?? 0,
-      );
-      store.set((prev) => ({
-        ...prev,
-        profile: mp.profile,
-        onboarded: prev.onboarded || mp.onboarded,
-      }));
-      if (mp.toRePush) await pushProfileToServer();
-    } else {
-      // 他人残留 → 云端覆盖本地
-      const server = await pullWishesFromServer();
-      if (server) {
-        store.set((prev) => ({ ...prev, wishes: server!.wishes, pendingDeletes: [] }));
-      }
-      const srv = await pullProfileFromServer();
-      store.set((prev) => ({
-        ...prev,
-        profile: srv?.profile ?? null,
-        profileUpdatedAt: srv?.updatedAt ?? undefined,
-        onboarded: srv?.profile ? true : prev.onboarded,
-      }));
+      store.set((prev) => ({ ...prev, ownerUid: uid }));
+      setFeedback({ status: "synced", at: Date.now() });
+    } catch {
+      setFeedback({ status: "error", at: Date.now() });
     }
-
-    store.set((prev) => ({ ...prev, ownerUid: uid }));
-  } finally {
-    inflight = false;
-  }
+  });
 }

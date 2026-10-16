@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import type { BirthProfile } from "@/lib/astrology";
 import { localDateStr } from "@/lib/format";
+import { isWishTitleSyncable } from "@/lib/wishes/limits";
 
 export type Wish = {
   id: string;
@@ -14,6 +15,9 @@ export type Wish = {
   /** 版本时钟（ms）。编辑 / 删除都 bump；同 id 冲突以更大者为新。 */
   updatedAt: number;
 };
+
+/** 推送结果：ok = 是否成功；localOnly = 仅存本机（如超长记录）的条数。 */
+export type PushWishesResult = { ok: boolean; localOnly: number };
 
 export type AppState = {
   onboarded: boolean;
@@ -160,21 +164,25 @@ export function getState(): AppState {
 
 /**
  * 将全部本地 wishes（含待删 id）推送至服务端（增量合并协议）。
- * 成功后清空 pendingDeletes。返回是否成功。
+ * 超过长度上限的记录不会被推送（服务端会整批拒绝），保持仅存本机。
+ * 成功后只清空本次实际发送的 pendingDeletes，避免清掉推送期间新产生的删除。
  */
-export async function pushWishesToServer(): Promise<boolean> {
-  if (typeof window === "undefined") return false;
+export async function pushWishesToServer(): Promise<PushWishesResult> {
+  if (typeof window === "undefined") return { ok: false, localOnly: 0 };
   const draft = getState();
-  // 没有任何本地变更时不发请求
-  if (draft.pendingDeletes.length === 0 && (draft.wishes.length === 0 || !hasLocalDirty())) {
-    return true;
+  const syncable = draft.wishes.filter((w) => isWishTitleSyncable(w.title));
+  const localOnly = draft.wishes.length - syncable.length;
+  // 没有任何可推送的本地变更时不发请求
+  if (draft.pendingDeletes.length === 0 && !hasLocalDirty()) {
+    return { ok: true, localOnly };
   }
+  const sentDeletes = [...draft.pendingDeletes];
   try {
     const res = await fetch("/api/wishes", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        wishes: draft.wishes.map((w) => ({
+        wishes: syncable.map((w) => ({
           id: w.id,
           title: w.title,
           category: w.category,
@@ -183,18 +191,23 @@ export async function pushWishesToServer(): Promise<boolean> {
           completedAt: w.completedAt,
           updatedAt: w.updatedAt,
         })),
-        deletes: draft.pendingDeletes,
+        deletes: sentDeletes,
       }),
     });
-    if (!res.ok) return false;
-    if (draft.pendingDeletes.length > 0 || draft.wishes.length > 0) {
-      const maxPushed =
-        draft.wishes.reduce<number>((m, w) => Math.max(m, w.updatedAt), draft.lastPushedAt ?? 0);
-      store.set((prev) => ({ ...prev, pendingDeletes: [], lastPushedAt: maxPushed }));
-    }
-    return true;
+    if (!res.ok) return { ok: false, localOnly };
+    const sentDeleteSet = new Set(sentDeletes);
+    const maxPushed = syncable.reduce<number>(
+      (m, w) => Math.max(m, w.updatedAt),
+      draft.lastPushedAt ?? 0,
+    );
+    store.set((prev) => ({
+      ...prev,
+      pendingDeletes: prev.pendingDeletes.filter((id) => !sentDeleteSet.has(id)),
+      lastPushedAt: Math.max(prev.lastPushedAt ?? 0, maxPushed),
+    }));
+    return { ok: true, localOnly };
   } catch {
-    return false;
+    return { ok: false, localOnly };
   }
 }
 
@@ -265,10 +278,12 @@ export async function pullProfileFromServer(): Promise<
   }
 }
 
-/** 有过本地编辑但尚未成功推送（wishes 无独立 dirty 标记时的近似判断）。 */
+/** 有过本地编辑但尚未成功推送（wishes 无独立 dirty 标记时的近似判断；超长记录不参与）。 */
 export function hasLocalDirty(): boolean {
   const s = getState();
-  return s.wishes.some((w) => w.updatedAt > (s.lastPushedAt ?? 0));
+  return s.wishes.some(
+    (w) => isWishTitleSyncable(w.title) && w.updatedAt > (s.lastPushedAt ?? 0),
+  );
 }
 
 export function newId() {

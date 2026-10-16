@@ -21,7 +21,8 @@ export function MailPreview({
   onSeal: (turnstileToken: string) => void;
 }) {
   const mounted = useMounted();
-  const nickname = mounted ? store.useStore().profile?.nickname : undefined;
+  const s = store.useStore();
+  const nickname = mounted ? s.profile?.nickname : undefined;
   const auth = useAuth();
   const [confirmed, setConfirmed] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -70,7 +71,11 @@ export function MailPreview({
         </span>
       </label>
 
-      {sendError && <p className="text-sm text-red-400">{sendError}</p>}
+      {sendError && (
+        <p role="alert" className="text-sm text-red-400">
+          {sendError}
+        </p>
+      )}
 
       {auth.status === "loading" && (
         <p className="text-center text-sm text-moon-500">正在确认登录状态…</p>

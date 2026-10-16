@@ -24,7 +24,8 @@ export function MailSealing({
   onError: (reason: string) => void;
 }) {
   const mounted = useMounted();
-  const nickname = mounted ? store.useStore().profile?.nickname : undefined;
+  const s = store.useStore();
+  const nickname = mounted ? s.profile?.nickname : undefined;
   const nicknameRef = useRef(nickname);
 
   const [animDone, setAnimDone] = useState(false);

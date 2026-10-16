@@ -21,7 +21,16 @@ const TITLE_SUGGESTIONS = [
 ];
 
 const INPUT_CLASS =
-  "h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[15px] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400";
+  "h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-base text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400";
+
+/** 同步落盘草稿；进入预览会卸载编写组件并取消防抖定时器，必须立即写入 */
+function persistDraft(draft: StarMailDraft) {
+  try {
+    window.localStorage.setItem(STAR_MAIL_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // localStorage 不可用时静默降级
+  }
+}
 
 function loadDraft(): StarMailDraft | null {
   try {
@@ -78,14 +87,7 @@ export function MailCompose({
   // 草稿自动保存（300ms 防抖）
   useEffect(() => {
     const t = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(
-          STAR_MAIL_DRAFT_KEY,
-          JSON.stringify({ recipient, taName, title, signatureType, customSignature, body }),
-        );
-      } catch {
-        // localStorage 不可用时静默降级
-      }
+      persistDraft({ recipient, taName, title, signatureType, customSignature, body });
     }, 300);
     return () => window.clearTimeout(t);
   }, [recipient, taName, title, signatureType, customSignature, body]);
@@ -100,14 +102,17 @@ export function MailCompose({
     if (!emailOk) { setError("邮箱格式不正确，请检查后再试"); return; }
     if (!body.trim()) { setError("写点什么吧，哪怕只有一句话"); return; }
     if (bodyLen > 2000) { setError("正文不能超过 2000 字"); return; }
-    onPreview({
+    const draft: StarMailDraft = {
       recipient: recipient.trim().toLowerCase(),
       taName: taName.trim(),
       title: title.trim(),
       signatureType,
       customSignature: customSignature.trim(),
       body,
-    });
+    };
+    // 进入预览会卸载本组件并取消防抖定时器，这里先同步落盘，登录跳转/刷新后草稿完整
+    persistDraft(draft);
+    onPreview(draft);
   }
 
   return (
@@ -169,6 +174,7 @@ export function MailCompose({
               <button
                 key={s}
                 type="button"
+                aria-pressed={title === s}
                 onClick={() => setTitle(s)}
                 className={`rounded-full border px-3 py-2 min-h-9 text-sm transition-colors ${
                   title === s
@@ -184,8 +190,12 @@ export function MailCompose({
 
         {/* 署名 */}
         <div className="flex flex-col gap-2">
-          <span className="text-xs text-moon-500">署名</span>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <span id="sm-signature-label" className="text-xs text-moon-500">署名</span>
+          <div
+            role="group"
+            aria-labelledby="sm-signature-label"
+            className="flex flex-col gap-2 sm:flex-row"
+          >
             {(
               [
                 { v: "name" as const, label: "我的名字", hint: nickname || "未设置昵称" },
@@ -196,6 +206,7 @@ export function MailCompose({
               <button
                 key={o.v}
                 type="button"
+                aria-pressed={signatureType === o.v}
                 onClick={() => setSignatureType(o.v)}
                 className={`flex min-h-11 flex-1 flex-col items-start justify-center rounded-xl border px-4 py-2.5 text-left transition-colors ${
                   signatureType === o.v
@@ -237,23 +248,18 @@ export function MailCompose({
           <div className="text-right text-xs text-moon-500">{bodyLen} / 2000</div>
         </div>
 
-        {/* 定时发送 UI 占位 */}
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-hairline bg-white/[0.02] px-4 py-3">
+        {/* 发送时机：定时寄出尚未上线，用文字说明代替可切换的视觉暗示 */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-hairline bg-white/[0.02] px-4 py-3">
           <span className="text-sm text-moon-300">发送时机</span>
-          <div className="inline-flex rounded-full border border-hairline p-0.5 text-sm">
-            <span className="rounded-full bg-white/[0.06] px-3 py-1 text-moon-200">立即寄出</span>
-            <span className="px-3 py-1 text-moon-500">定时寄出</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setError("定时发送即将上线，先帮你立即寄出。")}
-            className="ml-auto rounded-full border border-hairline px-3 py-1.5 min-h-9 text-xs text-moon-500 transition-colors hover:border-gold-400/50 hover:text-gold-300"
-          >
-            即将上线
-          </button>
+          <span className="text-sm text-moon-200">立即寄出</span>
+          <span className="text-xs text-moon-500">定时寄出 · 即将上线</span>
         </div>
 
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-red-400">
+            {error}
+          </p>
+        )}
 
         <div className="flex justify-center">
           <StarButton size="lg" arrow onClick={handlePreview}>预览这封信</StarButton>
