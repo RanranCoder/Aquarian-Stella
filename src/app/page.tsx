@@ -43,7 +43,7 @@ export default function HomePage() {
           className="group absolute right-[7%] top-[16%] hidden flex-col items-end gap-2 md:flex"
         >
           <span className="h-px w-28 bg-gradient-to-r from-transparent via-gold-300/90 to-transparent" />
-          <span className="text-[11px] text-moon-500 transition-colors group-hover:text-gold-300">
+          <span className="text-[0.6875rem] text-moon-500 transition-colors group-hover:text-gold-300">
             ✦ 这里藏着一封信
           </span>
         </Link>
@@ -52,7 +52,7 @@ export default function HomePage() {
           <h1 className="display-zh max-w-3xl text-balance text-[clamp(2.1rem,4.5vw_+_1rem,3.75rem)] leading-[1.15] tracking-[0.02em] md:leading-[1.12]">
             今晚的星星，想和你说些什么？
           </h1>
-          <p className="max-w-md text-[15px] leading-relaxed text-moon-400">
+          <p className="max-w-md text-[0.9375rem] leading-relaxed text-pretty text-moon-400">
             看见星象，也看见自己。把复杂的星象翻译成你可以理解、可以反思、可以记录的语言。
           </p>
           <div className="mt-2">
@@ -95,7 +95,7 @@ export default function HomePage() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 text-lav-300">
                     <OrbitIcon className="h-6 w-6" />
-                    <span className="text-[13px] uppercase tracking-[0.22em]">
+                    <span className="text-[0.8125rem] uppercase tracking-[0.22em]">
                       我的星盘
                     </span>
                   </div>
@@ -141,7 +141,7 @@ export default function HomePage() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 text-gold-300">
                     <HeartIcon className="h-6 w-6" />
-                    <span className="text-[13px] uppercase tracking-[0.22em]">
+                    <span className="text-[0.8125rem] uppercase tracking-[0.22em]">
                       关系星图
                     </span>
                   </div>
@@ -180,7 +180,7 @@ export default function HomePage() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 text-lav-300">
                     <StarIcon className="h-6 w-6" />
-                    <span className="text-[13px] uppercase tracking-[0.22em]">
+                    <span className="text-[0.8125rem] uppercase tracking-[0.22em]">
                       我的星愿
                     </span>
                   </div>
@@ -205,11 +205,11 @@ export default function HomePage() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 text-moon-300">
                     <ChatIcon className="h-6 w-6" />
-                    <span className="text-[13px] uppercase tracking-[0.22em]">
+                    <span className="text-[0.8125rem] uppercase tracking-[0.22em]">
                       探索
                     </span>
                   </div>
-                  <span className="rounded-full border border-hairline px-2.5 py-1 text-[11px] text-moon-500">
+                  <span className="rounded-full border border-hairline px-2.5 py-1 text-[0.6875rem] text-moon-500">
                     十二星座
                   </span>
                 </div>
@@ -232,7 +232,7 @@ export default function HomePage() {
           title="先看看，你属于哪一片星空"
           description="滑动浏览十二星座，每个星座都有它自己的语言。"
         />
-        <div className="mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-4">
+        <div className="scroll-thin mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-4">
           {ZODIACS.map((z) => (
             <Link
               key={z.slug}

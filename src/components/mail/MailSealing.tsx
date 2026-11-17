@@ -100,11 +100,11 @@ export function MailSealing({
       <div className="seal-stage relative flex h-64 w-full max-w-xs flex-col items-center justify-center">
         {/* 信纸 */}
         <div className="seal-letter h-52 w-40 rounded-lg bg-[#FFFDF6] p-4 shadow-card-lg">
-          <p className="text-[10px] tracking-[0.2em] text-[#9E98B3]">To: Ta</p>
-          <p className="mt-2 text-[12px] font-medium text-[#0D1124]">
+          <p className="text-[0.625rem] tracking-[0.2em] text-[#9E98B3]">To: Ta</p>
+          <p className="mt-2 text-[0.75rem] font-medium text-[#0D1124]">
             {draft.title || "有些话想告诉你"}
           </p>
-          <p className="mt-2 whitespace-pre-line text-[11px] leading-relaxed text-[#1B2034]">
+          <p className="mt-2 whitespace-pre-line text-[0.6875rem] leading-relaxed text-[#1B2034]">
             {draft.body}
           </p>
         </div>
@@ -115,7 +115,9 @@ export function MailSealing({
       </div>
 
       <p className="seal-text-1 text-sm text-moon-200">把这份心意交给星星。</p>
-      <p className="seal-text-2 text-sm text-moon-400">正在寄出……</p>
+      <p className="seal-text-2 text-sm text-moon-400" role="status">
+        正在寄出……
+      </p>
     </div>
   );
 }

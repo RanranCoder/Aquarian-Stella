@@ -588,8 +588,7 @@ export function getRelation(
 
   // 5. 合盘相位（按强度排序，带标签）
   const labelledAspects = synastryAspects
-    .slice()
-    .sort((a, b) => b.strength - a.strength)
+    .toSorted((a, b) => b.strength - a.strength)
     .map((asp) => ({ ...asp, label: aspectLabel(asp) }));
 
   return {

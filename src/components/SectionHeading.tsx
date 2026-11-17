@@ -25,7 +25,7 @@ export function SectionHeading({
       )}
     >
       {eyebrow && (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[0.6875rem] uppercase tracking-[0.22em] text-lav-300">
           <SparkleIcon className="h-3 w-3" />
           {eyebrow}
         </span>
@@ -36,7 +36,7 @@ export function SectionHeading({
       {description && (
         <p
           className={cn(
-            "max-w-xl text-[15px] leading-relaxed text-moon-400",
+            "max-w-xl text-[0.9375rem] leading-relaxed text-pretty text-moon-400",
             align === "center" && "mx-auto",
           )}
         >

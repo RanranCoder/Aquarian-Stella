@@ -73,7 +73,7 @@ function Col({
         role="listbox"
         aria-label={label}
         aria-orientation="vertical"
-        className="max-h-56 overflow-y-auto pr-0.5"
+        className="scroll-thin max-h-56 overflow-y-auto pr-0.5"
       >
         {values.map((v) => {
           const active = selected === v;
@@ -88,7 +88,7 @@ function Col({
               aria-label={`选择 ${String(v).padStart(2, "0")} ${label}`}
               onKeyDown={(event) => onKeyDown(event, v)}
               className={cn(
-                "flex h-11 w-full items-center justify-center rounded-lg text-[15px] transition-colors",
+                "flex min-h-11 w-full items-center justify-center rounded-lg text-[0.9375rem] transition-colors",
                 active
                   ? "bg-lav-400/20 font-medium text-lav-200"
                   : "text-moon-300 hover:bg-white/[0.06] hover:text-moon-100",
@@ -128,8 +128,8 @@ export function TimePicker({
         setOpen(false);
       }
     }
-    document.addEventListener("mousedown", onPointerDown);
-    return () => document.removeEventListener("mousedown", onPointerDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
   }, []);
 
   useEffect(() => {
@@ -202,7 +202,7 @@ export function TimePicker({
         aria-describedby={ariaDescribedBy}
         onClick={toggle}
         className={cn(
-          "flex h-12 w-full items-center justify-between gap-2 rounded-xl border px-3.5 text-left text-[15px] outline-none transition-colors",
+          "flex min-h-12 w-full items-center justify-between gap-2 rounded-xl border px-3.5 text-left text-[0.9375rem] outline-none transition-colors",
           open
             ? "border-lav-400 bg-white/[0.06]"
             : "border-hairline bg-white/[0.04] hover:border-white/20",
@@ -256,7 +256,7 @@ export function TimePicker({
                   onClick={() => setMin(minute)}
                   aria-pressed={min === minute}
                   className={cn(
-                    "h-11 rounded-lg text-sm transition-colors",
+                    "min-h-11 rounded-lg text-sm transition-colors",
                     min === minute
                       ? "bg-lav-400/20 font-medium text-lav-200"
                       : "text-moon-300 hover:bg-white/[0.06] hover:text-moon-100",

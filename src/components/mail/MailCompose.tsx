@@ -21,7 +21,7 @@ const TITLE_SUGGESTIONS = [
 ];
 
 const INPUT_CLASS =
-  "h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-base text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400";
+  "min-h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-base text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400";
 
 /** 同步落盘草稿；进入预览会卸载编写组件并取消防抖定时器，必须立即写入 */
 function persistDraft(draft: StarMailDraft) {
@@ -224,6 +224,7 @@ export function MailCompose({
           {signatureType === "custom" && (
             <input
               type="text"
+              aria-label="自定义署名"
               value={customSignature}
               onChange={(e) => setCustomSignature(e.target.value)}
               placeholder="比如：R / 那个一直记得你的人 / 星星知道是谁"
@@ -243,7 +244,7 @@ export function MailCompose({
             rows={7}
             maxLength={2000}
             placeholder="写下你一直想说，却还没有说出口的话……"
-            className="w-full resize-y rounded-xl border border-hairline bg-white/[0.04] px-4 py-3 text-[15px] leading-relaxed text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
+            className="w-full resize-y rounded-xl border border-hairline bg-white/[0.04] px-4 py-3 text-[0.9375rem] leading-relaxed text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
           />
           <div className="text-right text-xs text-moon-500">{bodyLen} / 2000</div>
         </div>

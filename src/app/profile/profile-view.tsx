@@ -21,7 +21,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-white/[0.05] py-3.5 last:border-none">
       <span className="text-sm text-moon-500">{label}</span>
-      <span className="text-[15px] text-moon-200">{value || "未填写"}</span>
+      <span className="text-[0.9375rem] text-moon-200">{value || "未填写"}</span>
     </div>
   );
 }
@@ -96,7 +96,7 @@ export function ProfilePage() {
     return (
       <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
         <div className="flex justify-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[0.6875rem] uppercase tracking-[0.22em] text-lav-300">
             <SparkleIcon className="h-3 w-3" />
             个人中心
           </span>
@@ -114,7 +114,7 @@ export function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
       <div className="flex justify-center">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[0.6875rem] uppercase tracking-[0.22em] text-lav-300">
           <SparkleIcon className="h-3 w-3" />
           个人中心
         </span>
@@ -252,7 +252,7 @@ export function ProfilePage() {
           </h2>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[15px] text-moon-200">星空动效</p>
+              <p className="text-[0.9375rem] text-moon-200">星空动效</p>
               <p className="text-xs text-moon-500">关闭后减少星点与轨道动画</p>
             </div>
             <button

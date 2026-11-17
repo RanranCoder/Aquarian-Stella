@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/GlassCard";
 import { StarButton } from "@/components/StarButton";
@@ -56,6 +56,39 @@ export function OnboardingPage() {
   const cityFeedbackId = useId();
   const nicknameInputId = useId();
   const cityInputId = useId();
+  const formErrorRef = useRef<HTMLParagraphElement>(null);
+
+  // 通用表单错误出现时聚焦错误摘要（内联错误由 role="alert" 播报）
+  useEffect(() => {
+    if (!error || error === TIME_REQUIRED_ERROR || error === CITY_REQUIRED_ERROR) {
+      return;
+    }
+    formErrorRef.current?.focus();
+  }, [error]);
+
+  // ARIA radio 模式：方向键在选择间移动并选中，Tab 只停留在当前项
+  function onRadioKeyDown(
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    key: TimeChoice,
+  ) {
+    const keys: TimeChoice[] = ["exact", "approximate", "unknown"];
+    const idx = keys.indexOf(key);
+    let nextIdx: number | null = null;
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+      nextIdx = (idx + 1) % keys.length;
+    }
+    if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+      nextIdx = (idx - 1 + keys.length) % keys.length;
+    }
+    if (nextIdx === null) return;
+    event.preventDefault();
+    setTimeChoice(keys[nextIdx]);
+    setError("");
+    const radios = event.currentTarget
+      .closest('[role="radiogroup"]')
+      ?.querySelectorAll<HTMLButtonElement>('button[role="radio"]');
+    radios?.[nextIdx]?.focus();
+  }
 
   const enteredCity = city.trim();
   const recognizedCity = findCity(enteredCity);
@@ -272,6 +305,13 @@ export function OnboardingPage() {
                           type="button"
                           role="radio"
                           aria-checked={timeChoice === opt.key}
+                          tabIndex={
+                            timeChoice === opt.key ||
+                            (timeChoice === null && opt.key === "exact")
+                              ? 0
+                              : -1
+                          }
+                          onKeyDown={(event) => onRadioKeyDown(event, opt.key)}
                           onClick={() => {
                             setTimeChoice(opt.key);
                             setError("");
@@ -284,7 +324,7 @@ export function OnboardingPage() {
                           )}
                         >
                           <div>
-                            <p className="text-[15px] text-moon-100">
+                            <p className="text-[0.9375rem] text-moon-100">
                               {opt.label}
                             </p>
                             <p className="text-sm text-moon-500">{opt.sub}</p>
@@ -324,7 +364,6 @@ export function OnboardingPage() {
                             <p
                               id={timeErrorId}
                               role="alert"
-                              aria-live="assertive"
                               className="flex items-center gap-1.5 text-sm text-red-300"
                             >
                               <span aria-hidden="true">⚠</span>
@@ -361,7 +400,7 @@ export function OnboardingPage() {
                         placeholder="输入城市，如 广州"
                         aria-invalid={cityIsUnrecognized}
                         aria-describedby={cityFeedbackId}
-                        className="h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[15px] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
+                        className="min-h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[0.9375rem] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
                       />
                       {enteredCity ? (
                         recognizedCity ? (
@@ -389,7 +428,6 @@ export function OnboardingPage() {
                       {error === CITY_REQUIRED_ERROR && (
                         <p
                           role="alert"
-                          aria-live="assertive"
                           className="flex items-center gap-1.5 text-sm text-red-300"
                         >
                           <span aria-hidden="true">⚠</span>
@@ -425,7 +463,7 @@ export function OnboardingPage() {
                             aria-pressed={active}
                             onClick={() => toggleInterest(it)}
                             className={cn(
-                              "flex items-center justify-center gap-2 rounded-xl border px-5 py-4 text-[15px] transition-all duration-300",
+                              "flex items-center justify-center gap-2 rounded-xl border px-5 py-4 text-[0.9375rem] transition-all duration-300",
                               active
                                 ? "border-gold-400 bg-gold-400/10 text-gold-200"
                                 : "border-hairline bg-white/[0.03] text-moon-200 hover:border-white/20",
@@ -454,14 +492,14 @@ export function OnboardingPage() {
                         onChange={(e) => setNickname(e.target.value)}
                         placeholder="输入你的昵称"
                         maxLength={12}
-                        className="mt-2 h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[15px] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
+                        className="mt-2 min-h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[0.9375rem] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
                       />
                     </div>
                     <div className="relative mt-1">
                       <span className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-b from-gold-200 to-gold-400 text-night-950 shadow-[0_0_44px_rgba(201,169,110,0.45)]">
                         <StarIcon className="h-8 w-8" />
                       </span>
-                      <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-lav-400 text-[11px] text-night-950">
+                      <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-lav-400 text-[0.6875rem] text-night-950">
                         ✦
                       </span>
                     </div>
@@ -515,7 +553,12 @@ export function OnboardingPage() {
                 {error &&
                   error !== TIME_REQUIRED_ERROR &&
                   error !== CITY_REQUIRED_ERROR && (
-                  <p id={formErrorId} className="animate-fade-up mt-4 flex items-center justify-center gap-1.5 text-center text-sm text-red-300">
+                  <p
+                    ref={formErrorRef}
+                    tabIndex={-1}
+                    id={formErrorId}
+                    className="animate-fade-up mt-4 flex items-center justify-center gap-1.5 text-center text-sm text-red-300 outline-none"
+                  >
                     <span aria-hidden="true">⚠</span>
                     {error}
                   </p>

@@ -223,7 +223,7 @@ export function RelationshipPage() {
         <GlassCard glow="lav">
           <div className="flex flex-col gap-8 p-card md:p-10">
             <div className="text-center">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-gold-300">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[0.6875rem] uppercase tracking-[0.22em] text-gold-300">
                 <HeartIcon className="h-3 w-3" />
                 关系星图
               </span>
@@ -245,7 +245,7 @@ export function RelationshipPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="比如 TA、你的名字"
                   maxLength={40}
-                  className="h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[15px] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
+                  className="min-h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[0.9375rem] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -296,7 +296,7 @@ export function RelationshipPage() {
                     value={taCity}
                     onChange={(e) => setTaCity(e.target.value)}
                     placeholder="输入城市，如 北京"
-                    className="h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[15px] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
+                    className="min-h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-[0.9375rem] text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400"
                   />
                 </div>
               </div>
@@ -354,7 +354,7 @@ export function RelationshipPage() {
                 <span className="pb-1 text-sm text-moon-500">关系指数</span>
               </div>
               {/* 先给一条核心观察，详细依据与展开项放在后面 */}
-              <p className="max-w-md text-[15px] leading-relaxed text-moon-200">
+              <p className="max-w-md text-[0.9375rem] leading-relaxed text-pretty text-moon-200">
                 {aiRelation?.attraction?.[0] ?? result.attraction[0]}
               </p>
               <p className="max-w-md text-sm leading-relaxed text-moon-500">

@@ -67,8 +67,8 @@ export function DatePicker({
         setOpen(false);
       }
     }
-    document.addEventListener("mousedown", onPointerDown);
-    return () => document.removeEventListener("mousedown", onPointerDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
   }, []);
 
   useEffect(() => {
@@ -243,7 +243,7 @@ export function DatePicker({
         aria-describedby={ariaDescribedBy}
         onClick={toggle}
         className={cn(
-          "flex h-12 w-full items-center justify-between gap-2 rounded-xl border px-3.5 text-left text-[15px] outline-none transition-colors",
+          "flex min-h-12 w-full items-center justify-between gap-2 rounded-xl border px-3.5 text-left text-[0.9375rem] outline-none transition-colors",
           open
             ? "border-lav-400 bg-white/[0.06]"
             : "border-hairline bg-white/[0.04] hover:border-white/20",
@@ -286,7 +286,7 @@ export function DatePicker({
                 <button
                   type="button"
                   onClick={() => setMode("year")}
-                  className="rounded-lg px-3 py-1.5 text-[15px] font-medium text-moon-100 transition-colors hover:bg-white/[0.06]"
+                  className="rounded-lg px-3 py-1.5 text-[0.9375rem] font-medium text-moon-100 transition-colors hover:bg-white/[0.06]"
                 >
                   {vy}年{vm}月
                 </button>
@@ -348,7 +348,7 @@ export function DatePicker({
                             aria-current={isToday ? "date" : undefined}
                             aria-pressed={selected}
                             className={cn(
-                              "flex h-11 w-full items-center justify-center rounded-lg text-sm transition-colors",
+                              "flex min-h-11 w-full items-center justify-center rounded-lg text-sm transition-colors",
                               selected
                                 ? "bg-lav-400 font-medium text-night-950"
                                 : disabled
@@ -386,7 +386,7 @@ export function DatePicker({
                 <button
                   type="button"
                   onClick={() => setMode("month")}
-                  className="rounded-lg px-3 py-1.5 text-[15px] font-medium text-moon-100 transition-colors hover:bg-white/[0.06]"
+                  className="rounded-lg px-3 py-1.5 text-[0.9375rem] font-medium text-moon-100 transition-colors hover:bg-white/[0.06]"
                 >
                   {yearBase}–{yearBase + 11}年
                 </button>
@@ -430,7 +430,7 @@ export function DatePicker({
                       }}
                       disabled={yearIsUnavailable(y)}
                       className={cn(
-                        "h-11 rounded-lg text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-35",
+                        "min-h-11 rounded-lg text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-35",
                         yearIsUnavailable(y)
                           ? "text-moon-500"
                           : sel

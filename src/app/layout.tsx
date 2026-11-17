@@ -77,13 +77,23 @@ export default function RootLayout(props: LayoutProps<"/">) {
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        {/* Turnstile 依赖的第三方域，提前建连减少登录/寄信页的握手等待 */}
+        <link rel="preconnect" href="https://challenges.cloudflare.com" />
       </head>
       <body className="min-h-dvh">
         <JsonLd />
         <SyncProvider />
         <CosmicBackground />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-night-800 focus:px-4 focus:py-2 focus:text-sm focus:text-moon-100"
+        >
+          跳到主内容
+        </a>
         <SiteNav />
-        <main className="relative z-10">{props.children}</main>
+        <main id="main" tabIndex={-1} className="relative z-10 outline-none">
+          {props.children}
+        </main>
         <SiteFooter />
       </body>
     </html>

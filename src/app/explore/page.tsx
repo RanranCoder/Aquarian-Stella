@@ -71,7 +71,7 @@ export default function ExplorePage() {
             >
               <div className="flex items-center justify-between">
                 <p className="display-zh text-lg text-moon-300">{t.label}</p>
-                <span className="rounded-full border border-hairline px-2.5 py-1 text-[11px] text-moon-500">
+                <span className="rounded-full border border-hairline px-2.5 py-1 text-[0.6875rem] text-moon-500">
                   即将上线
                 </span>
               </div>

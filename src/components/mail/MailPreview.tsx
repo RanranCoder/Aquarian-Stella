@@ -50,11 +50,11 @@ export function MailPreview({
           </h2>
         </div>
         <div className="mx-auto mt-6 h-px w-24 bg-[#EAD9B4]" />
-        <p className="mt-6 text-[15px] leading-loose text-[#1B2034]">亲爱的 {draft.taName}：</p>
-        <p className="mt-2 whitespace-pre-line text-[15px] leading-loose text-[#1B2034]">{draft.body}</p>
-        <p className="mt-8 text-right text-[15px] text-[#1B2034]">—— {signature}</p>
+        <p className="mt-6 text-[0.9375rem] leading-loose text-[#1B2034]">亲爱的 {draft.taName}：</p>
+        <p className="mt-2 whitespace-pre-line text-[0.9375rem] leading-loose text-[#1B2034]">{draft.body}</p>
+        <p className="mt-8 text-right text-[0.9375rem] text-[#1B2034]">—— {signature}</p>
         <div className="mt-10 text-center">
-          <span className="text-[12px] tracking-[0.3em] text-[#9E98B3]">Stella</span>
+          <span className="text-[0.75rem] tracking-[0.3em] text-[#9E98B3]">Stella</span>
         </div>
       </div>
 
@@ -112,6 +112,15 @@ export function MailPreview({
           </StarButton>
         )}
       </div>
+      {/* 禁用原因可见化：Turnstile token 必须就绪才能真正寄出，但原因要告诉用户 */}
+      {auth.status === "authenticated" && (!confirmed || !turnstileToken) && (
+        <p className="text-center text-xs text-moon-500">
+          勾选邮箱确认并完成人机验证后，即可封存这封信。
+        </p>
+      )}
+      {auth.status === "anonymous" && !confirmed && (
+        <p className="text-center text-xs text-moon-500">勾选邮箱确认后即可封存。</p>
+      )}
 
       {auth.status === "authenticated" && (
         <Turnstile onToken={setTurnstileToken} className="min-h-[65px]" />

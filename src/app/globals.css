@@ -178,26 +178,6 @@
     outline: 2px solid var(--color-lav-400);
     outline-offset: 2px;
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
-  /* 个人中心「星空动效」开关的类级覆盖 */
-  html.motion-reduced *,
-  html.motion-reduced *::before,
-  html.motion-reduced *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
 }
 
 @layer components {
@@ -295,26 +275,98 @@
 }
 
 /* ============================================================
-   细滚动条：统一所有滚动区域（页面、下拉面板、横向星座条）
+   滚动条：根节点统一配色（scrollbar-color 可继承），
+   细宽度仅施加于显式滚动容器（.scroll-thin）。
+   WebKit 旧回退仅在浏览器不支持 scrollbar-color 时生效，
+   避免与标准属性互相抑制。
    ============================================================ */
-* {
+html {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
-*::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+
+@utility scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
-*::-webkit-scrollbar-track {
-  background: transparent;
+
+@supports not (scrollbar-color: auto) {
+  html,
+  .scroll-thin {
+    /* 重置 thin，避免 scrollbar-width 禁用 ::-webkit-scrollbar */
+    scrollbar-width: auto;
+  }
+
+  html::-webkit-scrollbar,
+  .scroll-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  html::-webkit-scrollbar-track,
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html::-webkit-scrollbar-thumb,
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  html::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }
-*::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
+
+/* ============================================================
+   动效降级：按动画逐项停用（而非全局 0.001ms 覆盖）。
+   仅停用持续/装饰性动画与入场动画（元素静态渲染终态）；
+   保留颜色等非运动过渡，hover/按压等短促反馈不受影响。
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-twinkle,
+  .animate-shoot,
+  .animate-drift,
+  .animate-drift-slow,
+  .animate-orbit,
+  .animate-float,
+  .animate-breathe,
+  .animate-fade-up {
+    animation: none;
+  }
+
+  /* 流星：静态基线是一条可见渐变线，降级时直接隐藏 */
+  .animate-shoot {
+    opacity: 0;
+  }
 }
-*::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+
+/* 个人中心「星空动效」开关的类级覆盖（与应用内偏好保持同一条降级路径） */
+html.motion-reduced {
+  scroll-behavior: auto;
 }
-*::-webkit-scrollbar-corner {
-  background: transparent;
+
+html.motion-reduced .animate-twinkle,
+html.motion-reduced .animate-shoot,
+html.motion-reduced .animate-drift,
+html.motion-reduced .animate-drift-slow,
+html.motion-reduced .animate-orbit,
+html.motion-reduced .animate-float,
+html.motion-reduced .animate-breathe,
+html.motion-reduced .animate-fade-up {
+  animation: none;
+}
+
+html.motion-reduced .animate-shoot {
+  opacity: 0;
 }

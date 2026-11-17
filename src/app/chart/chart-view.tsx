@@ -293,7 +293,7 @@ export function ChartPage() {
       <GlassCard glow="lav" className="mb-10">
         <div className="flex flex-col gap-8 p-card md:p-10">
           <div className="text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[0.6875rem] uppercase tracking-[0.22em] text-lav-300">
               <SparkleIcon className="h-3 w-3" />
               我的星盘
             </span>

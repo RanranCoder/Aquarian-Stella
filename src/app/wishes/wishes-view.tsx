@@ -36,6 +36,7 @@ export function WishesPage() {
   const [filter, setFilter] = useState<Wish["status"] | "all">("all");
   const [showNew, setShowNew] = useState(false);
   const [title, setTitle] = useState("");
+  const [titleError, setTitleError] = useState("");
   const [category, setCategory] = useState<Wish["category"]>("growth");
   const [undo, setUndo] = useState<Wish | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
@@ -98,7 +99,13 @@ export function WishesPage() {
 
   function addWish() {
     const t = title.trim();
-    if (!t || t.length > WISH_TITLE_MAX) return;
+    if (!t) {
+      // 允许点击保存并就地报错，而不是禁用按钮让用户猜测原因
+      setTitleError("先写下一句愿望，再保存。");
+      return;
+    }
+    if (t.length > WISH_TITLE_MAX) return;
+    setTitleError("");
     const wish: Wish = {
       id: newId(),
       title: t,
@@ -182,7 +189,7 @@ export function WishesPage() {
       {/* 头部 */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[0.6875rem] uppercase tracking-[0.22em] text-lav-300">
             <SparkleIcon className="h-3 w-3" />
             我的星愿
           </span>
@@ -249,28 +256,47 @@ export function WishesPage() {
                 <CloseIcon className="h-4 w-4" />
               </button>
             </div>
+            <label htmlFor="wish-title" className="sr-only">
+              星愿内容
+            </label>
             <textarea
+              id="wish-title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (titleError) setTitleError("");
+              }}
               placeholder="输入你的星愿……"
               rows={3}
               maxLength={WISH_TITLE_MAX}
-              aria-describedby="wish-title-hint"
+              aria-invalid={titleError ? true : undefined}
+              aria-describedby={titleError ? "wish-title-error" : "wish-title-hint"}
               className="w-full resize-none rounded-xl border border-hairline bg-white/[0.04] px-4 py-3 text-base leading-relaxed text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-gold-400"
             />
-            <div className="flex items-center justify-between gap-4">
-              <p id="wish-title-hint" className="text-xs text-moon-500">
-                保存后同步到你的账号，最多 {WISH_TITLE_MAX} 字。
-              </p>
+            {titleError ? (
               <p
-                className={cn(
-                  "shrink-0 text-xs tabular-nums",
-                  title.length >= WISH_TITLE_MAX ? "text-gold-300" : "text-moon-500",
-                )}
+                id="wish-title-error"
+                role="alert"
+                className="flex items-center gap-1.5 text-xs text-red-300"
               >
-                {title.length} / {WISH_TITLE_MAX}
+                <span aria-hidden="true">⚠</span>
+                {titleError}
               </p>
-            </div>
+            ) : (
+              <div className="flex items-center justify-between gap-4">
+                <p id="wish-title-hint" className="text-xs text-moon-500">
+                  保存后同步到你的账号，最多 {WISH_TITLE_MAX} 字。
+                </p>
+                <p
+                  className={cn(
+                    "shrink-0 text-xs tabular-nums",
+                    title.length >= WISH_TITLE_MAX ? "text-gold-300" : "text-moon-500",
+                  )}
+                >
+                  {title.length} / {WISH_TITLE_MAX}
+                </p>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((c) => (
                 <button
@@ -292,7 +318,6 @@ export function WishesPage() {
             <div className="flex justify-end">
               <StarButton
                 size="sm"
-                disabled={!title.trim()}
                 onClick={addWish}
               >
                 <StarIcon className="h-4 w-4" />
@@ -385,7 +410,7 @@ export function WishesPage() {
                       <div>
                         <p
                           className={cn(
-                            "text-[15px] leading-relaxed md:text-base",
+                            "text-[0.9375rem] leading-relaxed md:text-base",
                             w.status === "done" && "text-moon-400 line-through",
                           )}
                         >

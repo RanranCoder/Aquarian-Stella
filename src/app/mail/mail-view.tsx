@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MailIntro } from "@/components/mail/MailIntro";
 import { MailCompose } from "@/components/mail/MailCompose";
 import { MailPreview } from "@/components/mail/MailPreview";
@@ -31,6 +31,17 @@ export function MailView() {
   const [previewKey, setPreviewKey] = useState(0);
   const [sendError, setSendError] = useState("");
   const [masked, setMasked] = useState("");
+  // 多步流程：切步后把焦点移到当前步骤容器（首帧除外，避免抢走页面初始焦点）
+  const stepRef = useRef<HTMLDivElement>(null);
+  const firstRenderRef = useRef(true);
+
+  useEffect(() => {
+    if (firstRenderRef.current) {
+      firstRenderRef.current = false;
+      return;
+    }
+    stepRef.current?.focus();
+  }, [step]);
 
   useEffect(() => {
     let hasDraft = false;
@@ -46,7 +57,11 @@ export function MailView() {
   }, []);
 
   return (
-    <div className="mx-auto flex min-h-[70dvh] w-full max-w-2xl flex-col items-center justify-center px-5 pt-14 pb-24 md:py-20">
+    <div
+      ref={stepRef}
+      tabIndex={-1}
+      className="mx-auto flex min-h-[70dvh] w-full max-w-2xl flex-col items-center justify-center px-5 pt-14 pb-24 outline-none md:py-20"
+    >
       {step === "intro" && <MailIntro onStart={() => setStep("compose")} />}
 
       {step === "compose" && (

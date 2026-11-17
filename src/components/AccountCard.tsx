@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { GlassCard } from "@/components/GlassCard";
 import { Turnstile } from "@/components/Turnstile";
 import { notifyAuthChange } from "@/lib/use-auth";
 
 const INPUT_CLASS =
-  "h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-base text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400";
+  "min-h-12 w-full rounded-xl border border-hairline bg-white/[0.04] px-4 text-base text-moon-100 outline-none transition-colors placeholder:text-moon-500 focus:border-lav-400";
 
 type AccountState =
   | { status: "loading" }
@@ -31,6 +31,8 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
   const emailId = useId();
   const codeId = useId();
   const errorId = useId();
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const codeInputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<AccountState>({ status: "loading" });
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -85,6 +87,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
     setError("");
     if (!email.trim()) {
       setError("请输入邮箱");
+      emailInputRef.current?.focus();
       return;
     }
     if (!turnstileToken) {
@@ -101,6 +104,8 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok) {
         setError(errorText(data.error));
+        // 邮箱相关错误回到输入框；限流等待留在原处
+        if (data.error !== "RATE_LIMITED") emailInputRef.current?.focus();
         return;
       }
       setCooldown(60);
@@ -118,6 +123,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
     setError("");
     if (!/^\d{6}$/.test(code)) {
       setError("请输入 6 位验证码");
+      codeInputRef.current?.focus();
       return;
     }
     setBusyAction("verify");
@@ -130,6 +136,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok) {
         setError(errorText(data.error));
+        codeInputRef.current?.focus();
         return;
       }
       setCode("");
@@ -138,6 +145,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
       onAuthed?.();
     } catch {
       setError("登录失败，请稍后重试");
+      codeInputRef.current?.focus();
     } finally {
       setBusyAction(null);
     }
@@ -172,7 +180,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
 
         {state.status === "authenticated" && (
           <div className="flex flex-col items-center gap-4">
-            <p className="break-all text-[15px] text-moon-200">{state.email}</p>
+            <p className="break-all text-[0.9375rem] text-moon-200">{state.email}</p>
             {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
             <button
               type="button"
@@ -197,6 +205,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
                 <label htmlFor={emailId} className="sr-only">邮箱地址</label>
                 <input
                   id={emailId}
+                  ref={emailInputRef}
                   type="email"
                   inputMode="email"
                   autoComplete="email"
@@ -233,6 +242,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
                 <label htmlFor={codeId} className="sr-only">6 位验证码</label>
                 <input
                   id={codeId}
+                  ref={codeInputRef}
                   type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"

@@ -84,7 +84,10 @@ export function SiteNav() {
     <>
       {/* 桌面端 · 浮岛玻璃导航 */}
       <header className="fixed inset-x-0 top-0 z-40 hidden justify-center px-6 pt-5 md:flex">
-        <nav className="glass-strong flex items-center gap-1 rounded-full py-1.5 pl-2.5 pr-1.5">
+        <nav
+          aria-label="主导航"
+          className="glass-strong flex items-center gap-1 rounded-full py-1.5 pl-2.5 pr-1.5"
+        >
           <Link href="/" className="mr-2 flex items-center" aria-label="星语星愿 首页">
             <span className="flex items-center rounded-full bg-white p-1.5 shadow-[0_1px_6px_rgba(0,0,0,0.25)]">
               <Image
@@ -139,7 +142,7 @@ export function SiteNav() {
       </header>
 
       {/* 移动端 · 底部 Tab */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 md:hidden">
+      <nav aria-label="移动端导航" className="fixed inset-x-0 bottom-0 z-40 md:hidden">
         <div className="glass-strong mx-4 mb-[max(1rem,env(safe-area-inset-bottom))] flex items-stretch justify-between rounded-full px-2 py-1.5">
           {MOBILE_TABS.map((link) => {
             const active = isActive(pathname, link.href);
@@ -216,7 +219,7 @@ export function SiteNav() {
                   )}
                 >
                   {auth.status === "authenticated" ? (
-                    <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-b from-lav-300 to-lav-500 text-[11px] font-medium leading-none text-night-950 shadow-[0_0_10px_rgba(155,142,196,0.35)]">
+                    <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-b from-lav-300 to-lav-500 text-[0.6875rem] font-medium leading-none text-night-950 shadow-[0_0_10px_rgba(155,142,196,0.35)]">
                       {displayName.slice(0, 1) || "星"}
                     </span>
                   ) : (

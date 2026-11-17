@@ -22,11 +22,10 @@ export function SiteFooter() {
                 width={435}
                 height={161}
                 className="h-8 w-auto max-w-none"
-                loading="eager"
               />
             </Link>
 
-            <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            <nav aria-label="页脚导航" className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               {FOOTER_LINKS.map((l) => (
                 <Link
                   key={l.href}

@@ -247,15 +247,16 @@ export function TodayPage() {
   const moonPhase = getMoonPhase(new Date(yy, mm - 1, dd, 12));
 
   // 取主要行运相位（按 strength 降序，前 5 个）。数量很小，避免在条件分支后调用 Hook。
-  const majorTransits = [...(h?.transitAspects ?? [])]
-    .sort((a, b) => b.strength - a.strength)
+  const majorTransits = (h?.transitAspects ?? [])
+    .toSorted((a, b) => b.strength - a.strength)
     .slice(0, 5);
 
   return (
     <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 md:py-16">
+      <h1 className="sr-only">今日星语</h1>
       {/* 顶部：日期切换 */}
       <div className="mb-10 flex flex-col items-center gap-5">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-lav-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-3 py-1 text-[0.6875rem] uppercase tracking-[0.22em] text-lav-300">
           <SparkleIcon className="h-3 w-3" />
           今日星语
         </span>
@@ -338,7 +339,7 @@ export function TodayPage() {
                 className="border-b border-white/[0.05] pb-4 last:border-none last:pb-0"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] text-moon-200">{d.key}</span>
+                  <span className="text-[0.9375rem] text-moon-200">{d.key}</span>
                   <ScoreBar score={d.score} label={d.key} />
                 </div>
               </div>
@@ -349,6 +350,7 @@ export function TodayPage() {
           {h && Object.keys(h.scoresWithFactors).length > 0 && (
             <div>
               <button
+                type="button"
                 onClick={() => setFactorsOpen((v) => !v)}
                 aria-expanded={factorsOpen}
                 aria-controls="today-score-factors"
@@ -404,7 +406,7 @@ export function TodayPage() {
                 <t.icon className="h-5 w-5 text-gold-300" />
                 <div>
                   <p className="text-xs text-moon-500">{t.name}</p>
-                  <p className="text-[15px] text-moon-100">{t.value}</p>
+                  <p className="text-[0.9375rem] text-moon-100">{t.value}</p>
                 </div>
                 <p className="text-xs text-moon-500">{t.note}</p>
               </div>
