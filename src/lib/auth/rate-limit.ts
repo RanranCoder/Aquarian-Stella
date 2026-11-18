@@ -25,7 +25,7 @@ async function ensureWindow(db: D1Database, key: string, windowEnd: number): Pro
 async function resetExpired(db: D1Database, key: string, windowEnd: number, now: number): Promise<void> {
   await db
     .prepare("UPDATE rate_limits SET count = 0, window_end = ? WHERE key = ? AND window_end < ?")
-    .bind(windowEnd, now, key)
+    .bind(windowEnd, key, now)
     .run();
 }
 
