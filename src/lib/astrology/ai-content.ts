@@ -368,6 +368,9 @@ const SURFACE_LIMITS: Record<string, number> = {
   personality: 3,
 };
 
+// TODO: AI 文案验证期暂时停用限流，验证完成后改回 true
+const AI_RATE_LIMIT_ENABLED = false;
+
 async function generateWithCache<T>(
   db: D1Database,
   cacheKey: string,
@@ -383,14 +386,18 @@ async function generateWithCache<T>(
   if (cached) return cached as T;
 
   const rlKey = `ai:${surface}:${uid}`;
-  const rl = await claimDailyRate(db, rlKey, SURFACE_LIMITS[surface] ?? 1, Date.now());
-  if (!rl.allowed) throw new RateLimitExceededError(rl.retryAfterSec ?? 24 * 60 * 60);
+  if (AI_RATE_LIMIT_ENABLED) {
+    const rl = await claimDailyRate(db, rlKey, SURFACE_LIMITS[surface] ?? 1, Date.now());
+    if (!rl.allowed) throw new RateLimitExceededError(rl.retryAfterSec ?? 24 * 60 * 60);
+  }
 
   const raw = await callLLM(env, prompt);
   const parsed = parseAndValidate(raw, requiredFields);
   if (!parsed) {
     // LLM 调用失败或输出不合规：退还本次额度，避免无效调用把每日次数烧光
-    await releaseDailyRate(db, rlKey, Date.now()).catch(() => {});
+    if (AI_RATE_LIMIT_ENABLED) {
+      await releaseDailyRate(db, rlKey, Date.now()).catch(() => {});
+    }
     return null;
   }
   try {
