@@ -70,7 +70,8 @@ export class MemoryD1 {
       return { success: true, meta: { changes: 1, last_row_id: 0 } };
     }
     if (sql.includes("UPDATE rate_limits SET count = 0, window_end = ?")) {
-      const [windowEnd, now, key] = params as [number, number, string];
+      // 真实绑定顺序：.bind(windowEnd, key, now)
+      const [windowEnd, key, now] = params as [number, string, number];
       const row = this.table("rate_limits").get(key);
       if (row && (row.window_end as number) < now) {
         row.count = 0;
@@ -84,6 +85,15 @@ export class MemoryD1 {
       const row = this.table("rate_limits").get(key);
       if (row && (row.count as number) < max) {
         row.count = (row.count as number) + 1;
+        return { success: true, meta: { changes: 1, last_row_id: 0 } };
+      }
+      return { success: true, meta: { changes: 0, last_row_id: 0 } };
+    }
+    if (sql.includes("UPDATE rate_limits SET count = MAX(count - 1, 0)")) {
+      const [key, now] = params as [string, number];
+      const row = this.table("rate_limits").get(key);
+      if (row && (row.window_end as number) >= now) {
+        row.count = Math.max((row.count as number) - 1, 0);
         return { success: true, meta: { changes: 1, last_row_id: 0 } };
       }
       return { success: true, meta: { changes: 0, last_row_id: 0 } };

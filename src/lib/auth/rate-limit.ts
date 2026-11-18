@@ -89,3 +89,23 @@ export async function claimDailyRate(
   const ok = await claimSlot(db, key, max, windowEnd, now);
   return ok ? { allowed: true } : { allowed: false, retryAfterSec: 24 * 60 * 60 };
 }
+
+/** 退还一次日限流额度：仅当本次调用未产出结果（如 LLM 失败）时调用，避免失败也占用次数。 */
+export async function releaseDailyRate(
+  db: D1Database,
+  key: string,
+  now: number,
+): Promise<void> {
+  await db
+    .prepare("UPDATE rate_limits SET count = MAX(count - 1, 0) WHERE key = ? AND window_end >= ?")
+    .bind(key, now)
+    .run();
+}
+
+/** 日限流达到上限时抛出，由 API 层转为 429 + Retry-After。 */
+export class RateLimitExceededError extends Error {
+  constructor(public readonly retryAfterSec: number) {
+    super("RATE_LIMITED");
+    this.name = "RateLimitExceededError";
+  }
+}

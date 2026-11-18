@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { D1Database } from "@cloudflare/workers-types";
-import { claimDailyRate, claimRate } from "./rate-limit";
+import { claimDailyRate, claimRate, releaseDailyRate } from "./rate-limit";
 import { RATE_EMAIL_PER_HOUR, RATE_IP_PER_HOUR } from "./types";
 import { MemoryD1 } from "./d1-mock";
 
@@ -48,5 +48,32 @@ describe("rate-limit", () => {
     // 窗口过期后放行
     db.seed("rate_limits", "starmail:user:1", { count: 3, window_end: now - 1000 });
     expect((await claimDailyRate(d, "starmail:user:1", 3, now)).allowed).toBe(true);
+  });
+
+  it("releaseDailyRate refunds a claimed slot so failed calls do not consume quota", async () => {
+    const db = new MemoryD1();
+    const d = db as unknown as D1Database;
+    const now = Date.now();
+    // 上限 2：claim 两次后拒绝
+    expect((await claimDailyRate(d, "ai:today:1", 2, now)).allowed).toBe(true);
+    expect((await claimDailyRate(d, "ai:today:1", 2, now)).allowed).toBe(true);
+    expect((await claimDailyRate(d, "ai:today:1", 2, now)).allowed).toBe(false);
+    // 失败退还一次后可再次 claim
+    await releaseDailyRate(d, "ai:today:1", now);
+    expect((await claimDailyRate(d, "ai:today:1", 2, now)).allowed).toBe(true);
+    expect((await claimDailyRate(d, "ai:today:1", 2, now)).allowed).toBe(false);
+  });
+
+  it("releaseDailyRate never goes below zero and ignores expired windows", async () => {
+    const db = new MemoryD1();
+    const d = db as unknown as D1Database;
+    const now = Date.now();
+    // 未 claim 过：release 不产生记录
+    await releaseDailyRate(d, "ai:today:2", now);
+    expect((await claimDailyRate(d, "ai:today:2", 1, now)).allowed).toBe(true);
+    // 窗口过期：release 不作用（下次 claim 会重置开新窗口）
+    db.seed("rate_limits", "ai:today:2", { count: 1, window_end: now - 1000 });
+    await releaseDailyRate(d, "ai:today:2", now);
+    expect((await claimDailyRate(d, "ai:today:2", 1, now)).allowed).toBe(true);
   });
 });

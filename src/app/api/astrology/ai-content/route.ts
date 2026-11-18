@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getUid } from "@/lib/auth/uid";
 import { getProfile } from "@/lib/profile/db";
-import { claimDailyRate } from "@/lib/auth/rate-limit";
+import { RateLimitExceededError } from "@/lib/auth/rate-limit";
 import {
   generateTodayContent,
   generateRelationContent,
@@ -10,12 +10,6 @@ import {
   type LLMEnv,
 } from "@/lib/astrology/ai-content";
 import type { BirthProfile } from "@/lib/astrology";
-
-const SURFACE_LIMITS: Record<string, number> = {
-  today: 3,
-  relation: 10,
-  personality: 3,
-};
 
 function todayDateStr(): string {
   const d = new Date();
@@ -43,13 +37,6 @@ export async function POST(request: NextRequest) {
   const surface = typeof body.surface === "string" ? body.surface : "";
   if (!["today", "relation", "personality"].includes(surface)) {
     return NextResponse.json({ error: "INVALID_SURFACE" }, { status: 400 });
-  }
-
-  const limit = SURFACE_LIMITS[surface] ?? 1;
-  const rlKey = `ai:${surface}:${uid}`;
-  const rl = await claimDailyRate(env.DB, rlKey, limit, Date.now());
-  if (!rl.allowed) {
-    return NextResponse.json({ error: "RATE_LIMITED" }, { status: 429 });
   }
 
   const profile = await getProfile(env.DB, uid);
@@ -88,6 +75,12 @@ export async function POST(request: NextRequest) {
       content = await generatePersonalityContent(env.DB, uid, profile, llmEnv);
     }
   } catch (err) {
+    if (err instanceof RateLimitExceededError) {
+      return NextResponse.json(
+        { error: "RATE_LIMITED" },
+        { status: 429, headers: { "Retry-After": String(err.retryAfterSec) } },
+      );
+    }
     debugError = err instanceof Error ? err.message : String(err);
     console.error("[ai-content] generation error:", debugError);
     content = null;

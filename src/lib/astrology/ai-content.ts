@@ -7,6 +7,7 @@ import { calcNatalChart } from "./natal-chart";
 import { calcAspectsBetween } from "./aspects";
 import { checkGeneratedText } from "@/lib/trust";
 import { getCachedContent, setCachedContent } from "./ai-cache";
+import { claimDailyRate, releaseDailyRate, RateLimitExceededError } from "@/lib/auth/rate-limit";
 import { ZODIACS } from "@/data/zodiacs";
 
 /* ================================================================== */
@@ -360,6 +361,13 @@ const TODAY_REQUIRED = ["core", "expand", "actions", "question", "keywords"];
 const RELATION_REQUIRED = ["keywords", "attraction", "misunderstanding", "growth", "advice"];
 const PERSONALITY_REQUIRED = ["core", "emotion", "communication", "relationship", "action", "keywords"];
 
+/** 各 surface 每日 LLM 生成次数上限：仅成功产出（AI 内容写入缓存）才真正计数。 */
+const SURFACE_LIMITS: Record<string, number> = {
+  today: 3,
+  relation: 10,
+  personality: 3,
+};
+
 async function generateWithCache<T>(
   db: D1Database,
   cacheKey: string,
@@ -370,11 +378,21 @@ async function generateWithCache<T>(
   requiredFields: string[],
   env: LLMEnv,
 ): Promise<T | null> {
+  // 缓存命中直接返回，不占用每日生成次数
   const cached = await getCachedContent(db, cacheKey);
   if (cached) return cached as T;
+
+  const rlKey = `ai:${surface}:${uid}`;
+  const rl = await claimDailyRate(db, rlKey, SURFACE_LIMITS[surface] ?? 1, Date.now());
+  if (!rl.allowed) throw new RateLimitExceededError(rl.retryAfterSec ?? 24 * 60 * 60);
+
   const raw = await callLLM(env, prompt);
   const parsed = parseAndValidate(raw, requiredFields);
-  if (!parsed) return null;
+  if (!parsed) {
+    // LLM 调用失败或输出不合规：退还本次额度，避免无效调用把每日次数烧光
+    await releaseDailyRate(db, rlKey, Date.now()).catch(() => {});
+    return null;
+  }
   try {
     await setCachedContent(db, cacheKey, surface, uid, parsed, expiresAt);
   } catch {
