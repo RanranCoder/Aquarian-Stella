@@ -57,7 +57,9 @@ const ASPECT_CN: Record<string, string> = {
 /*  LLM 调用                                                           */
 /* ================================================================== */
 
-const TIMEOUT_MS = 10_000;
+// deepseek-chat 为全尺寸模型，生成速度慢于 flash 级模型，
+// 超时过短会导致大量请求中断后回退模板文案
+const TIMEOUT_MS = 30_000;
 
 async function callLLM(env: LLMEnv, userPrompt: string): Promise<string | null> {
   try {

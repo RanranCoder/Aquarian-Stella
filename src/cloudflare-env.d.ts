@@ -9,6 +9,9 @@ declare global {
     AUTH_DEV_LOG_CODE?: string;
     TURNSTILE_SECRET_KEY: string;
     STAR_MAIL_FROM_EMAIL: string;
+    LLM_BASE_URL: string;
+    LLM_API_KEY: string;
+    LLM_MODEL: string;
   }
 }
 

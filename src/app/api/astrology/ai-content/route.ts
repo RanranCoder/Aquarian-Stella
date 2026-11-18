@@ -58,9 +58,9 @@ export async function POST(request: NextRequest) {
   }
 
   const llmEnv: LLMEnv = {
-    LLM_BASE_URL: (env as unknown as Record<string, string>).LLM_BASE_URL,
-    LLM_API_KEY: (env as unknown as Record<string, string>).LLM_API_KEY,
-    LLM_MODEL: (env as unknown as Record<string, string>).LLM_MODEL,
+    LLM_BASE_URL: env.LLM_BASE_URL,
+    LLM_API_KEY: env.LLM_API_KEY,
+    LLM_MODEL: env.LLM_MODEL,
   };
 
   let content: Record<string, unknown> | null = null;
