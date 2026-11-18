@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import {
   CalendarIcon,
@@ -56,6 +57,7 @@ export function DatePicker({
   const [vy, setVy] = useState(() => todayParts().y);
   const [vm, setVm] = useState(() => todayParts().m);
   const [focusedDay, setFocusedDay] = useState(() => new Date().getDate());
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -63,9 +65,10 @@ export function DatePicker({
 
   useEffect(() => {
     function onPointerDown(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (rootRef.current?.contains(target)) return;
+      if (dialogRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
@@ -81,6 +84,46 @@ export function DatePicker({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
+
+  // 弹层经 Portal 渲染到 body 并 fixed 定位：跟随触发器，视口内夹紧、必要时向上翻转
+  const updatePosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    const dialog = dialogRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const margin = 8;
+    const gap = 8;
+    const width = dialog?.offsetWidth || 332;
+    const height = dialog?.offsetHeight || 0;
+    const left = Math.min(
+      Math.max(rect.left + rect.width / 2 - width / 2, margin),
+      Math.max(margin, window.innerWidth - width - margin),
+    );
+    let top = rect.bottom + gap;
+    if (height > 0 && top + height > window.innerHeight - margin) {
+      const above = rect.top - gap - height;
+      top =
+        above >= margin
+          ? above
+          : Math.max(margin, window.innerHeight - height - margin);
+    }
+    setPos({ left, top });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+  }, [open, mode, updatePosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, updatePosition]);
 
   useEffect(() => {
     if (!open) return;
@@ -262,14 +305,20 @@ export function DatePicker({
         />
       </button>
 
-      {open && (
-        <div
-          id={popupId}
-          ref={dialogRef}
-          role="dialog"
-          aria-label={ariaLabel}
-          className="absolute left-1/2 top-full z-50 mt-2 w-[min(20.75rem,calc(100vw-1rem))] -translate-x-1/2 rounded-xl border border-hairline bg-night-800/95 p-2 shadow-card-lg backdrop-blur-xl"
-        >
+      {open &&
+        createPortal(
+          <div
+            id={popupId}
+            ref={dialogRef}
+            role="dialog"
+            aria-label={ariaLabel}
+            style={{
+              left: pos?.left ?? -9999,
+              top: pos?.top ?? -9999,
+              visibility: pos ? "visible" : "hidden",
+            }}
+            className="fixed z-[60] w-[min(20.75rem,calc(100vw-1rem))] rounded-xl border border-hairline bg-night-800/95 p-2 shadow-card-lg backdrop-blur-xl"
+          >
           {mode === "month" ? (
             <>
               {/* 头部 */}
@@ -445,8 +494,9 @@ export function DatePicker({
               </div>
             </>
           )}
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

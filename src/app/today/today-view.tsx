@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { GlassCard } from "@/components/GlassCard";
 import { StarButton } from "@/components/StarButton";
-import { MoonIcon, SunIcon, AscIcon, ArrowRightIcon, SparkleIcon, MoonPhaseIcon } from "@/components/icons";
+import { MoonIcon, SunIcon, AscIcon, ArrowRightIcon, SparkleIcon, MoonPhaseIcon, CalendarIcon } from "@/components/icons";
 import { getMoonPhase } from "@/lib/astronomy";
 import { ShareCardFrame } from "@/components/ShareCardFrame";
 import { SaveShareButton } from "@/components/SaveShareButton";
@@ -275,16 +275,19 @@ export function TodayPage() {
             <p className="mt-1 text-sm text-moon-500">
               {sun.name} · {profile.nickname || "星星"}
             </p>
-            <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-2.5 py-0.5 text-xs text-moon-400">
-              <MoonPhaseIcon className="h-3.5 w-3.5 text-moon-300" />
-              {moonPhase.label}
-            </span>
+            <div className="mt-1.5 flex justify-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-white/[0.04] px-2.5 py-0.5 text-xs text-moon-400">
+                <MoonPhaseIcon className="h-3.5 w-3.5 text-moon-300" />
+                {moonPhase.label}
+              </span>
+            </div>
             {!isToday && (
               <button
                 type="button"
                 onClick={() => setDate(today)}
-                className="mt-2 inline-flex min-h-11 items-center text-xs text-lav-300 transition-colors hover:text-lav-200"
+                className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-lav-400/40 bg-lav-400/10 px-4 py-1.5 text-xs font-medium text-lav-200 transition-all duration-300 hover:border-lav-400/70 hover:bg-lav-400/20 hover:text-lav-100 hover:shadow-[0_0_16px_rgba(155,142,196,0.3)]"
               >
+                <CalendarIcon className="h-3.5 w-3.5" />
                 回到今天
               </button>
             )}
