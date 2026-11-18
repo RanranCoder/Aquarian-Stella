@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { GlassCard } from "@/components/GlassCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { HeroCta } from "@/components/home/HeroCta";
@@ -11,6 +12,10 @@ import {
   ArrowUpRightIcon,
 } from "@/components/icons";
 import { ZODIACS } from "@/data/zodiacs";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   return (
@@ -73,6 +78,18 @@ export default function HomePage() {
       {/* ===== 今日星语预览 ===== */}
       <section className="px-6 pt-8 pb-16 md:py-24">
         <TodayPreview />
+        <div className="mt-6 flex justify-center">
+          <Link
+            href="/horoscope"
+            className="group flex items-center gap-1.5 text-sm text-moon-400 transition-colors hover:text-gold-300"
+          >
+            想先看看十二星座的今天？
+            <span className="text-lav-300 transition-colors group-hover:text-gold-300">
+              查看今日运势总览
+            </span>
+            <ArrowUpRightIcon className="h-3.5 w-3.5 text-moon-500 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+        </div>
       </section>
 
       {/* ===== 三大核心功能 Bento ===== */}

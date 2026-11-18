@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "十二星座探索",
   description:
     "从十二星座开始，理解自己的性格、爱情与方向。白羊座、金牛座、双子座……每一个星座都有它自己的语言。",
+  alternates: { canonical: "/explore" },
 };
 
 const TOPICS = [
@@ -56,6 +57,27 @@ export default function ExplorePage() {
             </Link>
           );
         })}
+      </div>
+
+      {/* 星座配对入口 */}
+      <div className="mt-14">
+        <h2 className="mb-5 text-sm tracking-[0.18em] text-moon-500">星座配对</h2>
+        <Link href="/match">
+          <GlassCard interactive glow="gold">
+            <div className="flex flex-col gap-3 p-card md:flex-row md:items-center md:justify-between md:p-8">
+              <div className="flex flex-col gap-2">
+                <p className="display-zh text-xl text-moon-100">十二星座配对表</p>
+                <p className="text-sm leading-relaxed text-moon-400">
+                  66 组两两配对：契合度评分、元素相性、吸引力与挑战。白羊座×狮子座、双鱼座×天蝎座……一键查看完整解读。
+                </p>
+              </div>
+              <span className="flex shrink-0 items-center gap-2 text-sm text-gold-300">
+                查看配对表
+                <ArrowUpRightIcon className="h-4 w-4" />
+              </span>
+            </div>
+          </GlassCard>
+        </Link>
       </div>
 
       {/* 更多专题 */}

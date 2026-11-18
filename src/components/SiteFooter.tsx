@@ -1,12 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ZODIACS } from "@/data/zodiacs";
 
 const FOOTER_LINKS = [
+  { label: "今日运势", href: "/horoscope" },
   { label: "今日星语", href: "/today" },
   { label: "我的星盘", href: "/chart" },
   { label: "关系星图", href: "/relationship" },
   { label: "我的星愿", href: "/wishes" },
   { label: "探索星座", href: "/explore" },
+  { label: "星座配对表", href: "/match" },
 ];
 
 export function SiteFooter() {
@@ -33,6 +36,21 @@ export function SiteFooter() {
                   className="text-sm text-moon-400 transition-colors hover:text-moon-100"
                 >
                   {l.label}
+                </Link>
+              ))}
+            </nav>
+
+            <nav
+              aria-label="星座导航"
+              className="flex max-w-2xl flex-wrap justify-center gap-x-4 gap-y-1.5"
+            >
+              {ZODIACS.map((z) => (
+                <Link
+                  key={z.slug}
+                  href={`/explore/${z.slug}`}
+                  className="text-xs text-moon-500 transition-colors hover:text-moon-200"
+                >
+                  {z.symbol} {z.name}
                 </Link>
               ))}
             </nav>
