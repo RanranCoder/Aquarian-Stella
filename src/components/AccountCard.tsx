@@ -84,14 +84,11 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
 
   async function handleSendCode(e?: React.FormEvent) {
     e?.preventDefault();
+    if (!turnstileToken || busyAction !== null || cooldown > 0) return;
     setError("");
     if (!email.trim()) {
       setError("请输入邮箱");
       emailInputRef.current?.focus();
-      return;
-    }
-    if (!turnstileToken) {
-      setError("请稍候，人机验证未就绪");
       return;
     }
     setBusyAction("send");
@@ -104,16 +101,16 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok) {
         setError(errorText(data.error));
-        // 邮箱相关错误回到输入框；限流等待留在原处
-        if (data.error !== "RATE_LIMITED") emailInputRef.current?.focus();
+        if (data.error === "INVALID_EMAIL") emailInputRef.current?.focus();
         return;
       }
       setCooldown(60);
-      setTurnstileToken("");
-      setTurnstileKey((k) => k + 1);
     } catch {
       setError("发送失败，请稍后重试");
     } finally {
+      // 请求可能已经在服务端消耗了令牌，下次发送需要重新验证。
+      setTurnstileToken("");
+      setTurnstileKey((k) => k + 1);
       setBusyAction(null);
     }
   }
@@ -171,7 +168,7 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
 
   return (
     <GlassCard glow="none" className="mb-5">
-      <div className="p-8">
+      <div className="px-5 py-6 sm:p-8">
         <h2 className="mb-4 text-sm tracking-[0.18em] text-moon-500">账号</h2>
 
         {state.status === "loading" && (
@@ -197,11 +194,11 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
           <div className="flex flex-col gap-4">
             {/* 独立表单：邮箱按 Enter 即可发送验证码 */}
             <form
-              className="flex flex-col gap-3 md:flex-row"
+              className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
               onSubmit={handleSendCode}
               noValidate
             >
-              <div className="flex-1">
+              <div className="md:col-span-2">
                 <label htmlFor={emailId} className="sr-only">邮箱地址</label>
                 <input
                   id={emailId}
@@ -217,10 +214,11 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
                   className={INPUT_CLASS}
                 />
               </div>
+              <Turnstile key={turnstileKey} onToken={setTurnstileToken} />
               <button
                 type="submit"
-                disabled={busyAction !== null || cooldown > 0}
-                className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-lav-400/15 px-5 text-sm text-lav-200 transition-colors hover:bg-lav-400/25 disabled:opacity-50"
+                disabled={busyAction !== null || cooldown > 0 || !turnstileToken}
+                className="inline-flex h-11 items-center justify-center rounded-full bg-lav-400/15 px-5 text-sm text-lav-200 transition-colors hover:bg-lav-400/25 disabled:opacity-50"
               >
                 {cooldown > 0
                   ? `${cooldown}s 后重发`
@@ -229,8 +227,6 @@ export function AccountCard({ onAuthed }: { onAuthed?: () => void }) {
                     : "发送验证码"}
               </button>
             </form>
-
-            <Turnstile key={turnstileKey} onToken={setTurnstileToken} className="min-h-[65px]" />
 
             {/* 独立表单：验证码按 Enter 直接登录 */}
             <form

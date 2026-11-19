@@ -98,32 +98,26 @@ export function MailPreview({
         </div>
       )}
 
-      {/* 操作区 */}
-      <div className="flex flex-col justify-center gap-3 sm:flex-row">
-        <StarButton variant="ghost" onClick={onEdit}>重新编辑</StarButton>
+      <div className="flex flex-col gap-3">
         {auth.status === "authenticated" && (
-          <StarButton size="lg" arrow disabled={!confirmed || !turnstileToken} onClick={handleSeal}>
-            封存这封信
-          </StarButton>
+          <Turnstile onToken={setTurnstileToken} />
         )}
-        {auth.status === "anonymous" && (
-          <StarButton size="lg" arrow disabled={!confirmed} onClick={handleSeal}>
-            封存这封信
-          </StarButton>
-        )}
+        <div className="flex flex-col justify-center gap-3 sm:flex-row">
+          {auth.status !== "loading" && (
+            <StarButton
+              size="lg"
+              arrow
+              disabled={!confirmed || (auth.status === "authenticated" && !turnstileToken)}
+              onClick={handleSeal}
+            >
+              封存这封信
+            </StarButton>
+          )}
+          <StarButton variant="ghost" onClick={onEdit}>重新编辑</StarButton>
+        </div>
       </div>
-      {/* 禁用原因可见化：Turnstile token 必须就绪才能真正寄出，但原因要告诉用户 */}
-      {auth.status === "authenticated" && (!confirmed || !turnstileToken) && (
-        <p className="text-center text-xs text-moon-500">
-          勾选邮箱确认并完成人机验证后，即可封存这封信。
-        </p>
-      )}
       {auth.status === "anonymous" && !confirmed && (
         <p className="text-center text-xs text-moon-500">勾选邮箱确认后即可封存。</p>
-      )}
-
-      {auth.status === "authenticated" && (
-        <Turnstile onToken={setTurnstileToken} className="min-h-[65px]" />
       )}
     </div>
   );
